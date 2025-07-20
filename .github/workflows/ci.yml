@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'pnpm'
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Build packages
+      run: |
+        pnpm --filter @pixelmind/shared build
+        pnpm --filter @pixelmind/prompt-engine build
+
+    - name: Type check
+      run: pnpm --filter visual-editor type-check
+
+    - name: Lint
+      run: pnpm --filter visual-editor lint
+
+    - name: Build application
+      run: pnpm --filter visual-editor build
+
+  deploy-preview:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: test
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18.x
+        cache: 'pnpm'
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Build packages
+      run: |
+        pnpm --filter @pixelmind/shared build
+        pnpm --filter @pixelmind/prompt-engine build
+
+    - name: Build application
+      run: pnpm --filter visual-editor build
+
+    - name: Deploy to Netlify (Preview)
+      uses: nwtgck/actions-netlify@v2.0
+      with:
+        publish-dir: './apps/visual-editor/dist'
+        production-deploy: false
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        deploy-message: "Deploy from GitHub Actions"
+      env:
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}

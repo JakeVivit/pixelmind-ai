@@ -1,0 +1,32 @@
+{
+  "name": "pixelmind-ai",
+  "version": "0.1.0",
+  "description": "Visual AI Frontend Development Environment - Browser-based tool for generating React/Vue components through drag-and-drop interactions and natural language descriptions",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter visual-editor dev",
+    "build": "pnpm --filter visual-editor build",
+    "preview": "pnpm --filter visual-editor preview",
+    "lint": "pnpm --filter visual-editor lint",
+    "type-check": "pnpm --filter visual-editor type-check",
+    "clean": "pnpm -r clean",
+    "install:all": "pnpm install"
+  },
+  "keywords": [
+    "ai",
+    "frontend",
+    "visual-development",
+    "react",
+    "typescript",
+    "webcontainers",
+    "code-generation"
+  ],
+  "author": "PixelMind AI Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0"
+}

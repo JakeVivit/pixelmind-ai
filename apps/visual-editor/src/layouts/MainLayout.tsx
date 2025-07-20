@@ -1,0 +1,230 @@
+import React, { ReactNode } from 'react'
+import { Layout, Typography, Space, Button, Dropdown, Avatar, Menu } from 'antd'
+import {
+  MenuOutlined,
+  SettingOutlined,
+  QuestionCircleOutlined,
+  UserOutlined,
+  LogoutOutlined,
+  GithubOutlined,
+  HomeOutlined,
+  CodeOutlined,
+  EyeOutlined,
+  ThunderboltOutlined,
+} from '@ant-design/icons'
+import type { MenuProps } from 'antd'
+import { useAppStore, type AppView } from '@core/store/useAppStore'
+
+const { Header } = Layout
+const { Text } = Typography
+
+interface MainLayoutProps {
+  children: ReactNode
+}
+
+export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+  const { currentView, setCurrentView } = useAppStore()
+
+  // Navigation menu items
+  const navigationItems: MenuProps['items'] = [
+    {
+      key: 'welcome',
+      icon: <HomeOutlined />,
+      label: 'Welcome',
+    },
+    {
+      key: 'webcontainer',
+      icon: <ThunderboltOutlined />,
+      label: 'WebContainer Demo',
+    },
+    {
+      key: 'editor',
+      icon: <CodeOutlined />,
+      label: 'Visual Editor',
+      disabled: true, // Coming soon
+    },
+    {
+      key: 'preview',
+      icon: <EyeOutlined />,
+      label: 'Preview',
+      disabled: true, // Coming soon
+    },
+  ]
+
+  // User menu items
+  const userMenuItems: MenuProps['items'] = [
+    {
+      key: 'profile',
+      icon: <UserOutlined />,
+      label: 'Profile',
+    },
+    {
+      key: 'settings',
+      icon: <SettingOutlined />,
+      label: 'Settings',
+    },
+    {
+      type: 'divider',
+    },
+    {
+      key: 'help',
+      icon: <QuestionCircleOutlined />,
+      label: 'Help & Support',
+    },
+    {
+      key: 'github',
+      icon: <GithubOutlined />,
+      label: 'GitHub Repository',
+    },
+    {
+      type: 'divider',
+    },
+    {
+      key: 'logout',
+      icon: <LogoutOutlined />,
+      label: 'Sign Out',
+      danger: true,
+    },
+  ]
+
+  const handleNavigationClick: MenuProps['onClick'] = ({ key }) => {
+    setCurrentView(key as AppView)
+  }
+
+  const handleUserMenuClick: MenuProps['onClick'] = ({ key }) => {
+    switch (key) {
+      case 'profile':
+        console.log('Open profile')
+        break
+      case 'settings':
+        console.log('Open settings')
+        break
+      case 'help':
+        console.log('Open help')
+        break
+      case 'github':
+        window.open('https://github.com/pixelmind-ai/pixelmind-ai', '_blank')
+        break
+      case 'logout':
+        console.log('Sign out')
+        break
+      default:
+        break
+    }
+  }
+
+  return (
+    <Layout style={{ minHeight: '100vh' }}>
+      <Header
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 24px',
+          background: '#fff',
+          borderBottom: '1px solid #f0f0f0',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+        }}
+      >
+        {/* Left side - Logo, title and navigation */}
+        <Space align="center" size="large">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                borderRadius: 8,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontWeight: 'bold',
+                fontSize: 16,
+                cursor: 'pointer',
+              }}
+              onClick={() => setCurrentView('welcome')}
+            >
+              P
+            </div>
+            <div>
+              <Text strong style={{ fontSize: 18, color: '#333' }}>
+                PixelMind AI
+              </Text>
+              <br />
+              {/* <Text type="secondary" style={{ fontSize: 12 }}>
+                Visual Frontend Development
+              </Text> */}
+            </div>
+          </div>
+
+          {/* Navigation Menu */}
+          <Menu
+            mode="horizontal"
+            selectedKeys={[currentView]}
+            items={navigationItems}
+            onClick={handleNavigationClick}
+            style={{
+              border: 'none',
+              background: 'transparent',
+              minWidth: 400,
+            }}
+          />
+        </Space>
+
+        {/* Right side - Actions and user menu */}
+        <Space align="center" size="middle">
+          {/* Quick actions */}
+          <Button
+            type="text"
+            icon={<QuestionCircleOutlined />}
+            onClick={() => console.log('Open help')}
+          >
+            Help
+          </Button>
+
+          <Button
+            type="text"
+            icon={<GithubOutlined />}
+            onClick={() => window.open('https://github.com/pixelmind-ai/pixelmind-ai', '_blank')}
+          >
+            GitHub
+          </Button>
+
+          {/* User dropdown */}
+          <Dropdown
+            menu={{
+              items: userMenuItems,
+              onClick: handleUserMenuClick,
+            }}
+            placement="bottomRight"
+            trigger={['click']}
+          >
+            <Button
+              type="text"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '4px 8px',
+                height: 'auto',
+              }}
+            >
+              <Avatar
+                size="small"
+                icon={<UserOutlined />}
+                style={{
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                }}
+              />
+              <Text style={{ fontSize: 14 }}>User</Text>
+            </Button>
+          </Dropdown>
+        </Space>
+      </Header>
+
+      {/* Main content area */}
+      {children}
+    </Layout>
+  )
+}
