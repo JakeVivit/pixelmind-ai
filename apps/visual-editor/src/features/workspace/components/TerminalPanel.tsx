@@ -5,7 +5,7 @@ import {
   CloseOutlined,
   ClearOutlined,
   MoreOutlined,
-  TerminalOutlined,
+  ConsoleSqlOutlined,
   PlayCircleOutlined,
 } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
@@ -44,7 +44,7 @@ export const TerminalPanel: React.FC = () => {
       isRunning: false,
     },
   ])
-  
+
   const terminalRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -89,42 +89,42 @@ export const TerminalPanel: React.FC = () => {
     newOutput.push('')
 
     // 模拟命令执行
-    setTerminals(prev => prev.map(terminal => 
-      terminal.id === activeTerminal
-        ? { 
-            ...terminal, 
-            output: newOutput,
-            currentCommand: '',
-            isRunning: true
-          }
-        : terminal
-    ))
+    setTerminals(prev =>
+      prev.map(terminal =>
+        terminal.id === activeTerminal
+          ? {
+              ...terminal,
+              output: newOutput,
+              currentCommand: '',
+              isRunning: true,
+            }
+          : terminal
+      )
+    )
 
     // 模拟命令响应
     setTimeout(() => {
       const response = getCommandResponse(command)
-      setTerminals(prev => prev.map(terminal => 
-        terminal.id === activeTerminal
-          ? { 
-              ...terminal, 
-              output: [...terminal.output, ...response, '$ '],
-              isRunning: false
-            }
-          : terminal
-      ))
+      setTerminals(prev =>
+        prev.map(terminal =>
+          terminal.id === activeTerminal
+            ? {
+                ...terminal,
+                output: [...terminal.output, ...response, '$ '],
+                isRunning: false,
+              }
+            : terminal
+        )
+      )
     }, 1000)
   }
 
   const getCommandResponse = (command: string): string[] => {
     const cmd = command.toLowerCase().trim()
-    
+
     if (cmd.startsWith('npm')) {
       if (cmd.includes('install')) {
-        return [
-          'Installing packages...',
-          'added 1234 packages in 15.2s',
-          '',
-        ]
+        return ['Installing packages...', 'added 1234 packages in 15.2s', '']
       } else if (cmd.includes('start')) {
         return [
           'Starting development server...',
@@ -141,29 +141,23 @@ export const TerminalPanel: React.FC = () => {
         ]
       }
     } else if (cmd === 'ls' || cmd === 'dir') {
-      return [
-        'src/',
-        'public/',
-        'package.json',
-        'README.md',
-        '',
-      ]
+      return ['src/', 'public/', 'package.json', 'README.md', '']
     } else if (cmd.startsWith('cd')) {
       return ['']
     } else if (cmd === 'pwd') {
       return ['/workspace/my-project', '']
     } else if (cmd === 'clear') {
       // 清空终端
-      setTerminals(prev => prev.map(terminal => 
-        terminal.id === activeTerminal
-          ? { ...terminal, output: ['$ '] }
-          : terminal
-      ))
+      setTerminals(prev =>
+        prev.map(terminal =>
+          terminal.id === activeTerminal ? { ...terminal, output: ['$ '] } : terminal
+        )
+      )
       return []
     } else {
       return [`bash: ${command}: command not found`, '']
     }
-    
+
     return ['']
   }
 
@@ -182,21 +176,21 @@ export const TerminalPanel: React.FC = () => {
 
   const handleCloseTerminal = (terminalId: string) => {
     if (terminals.length === 1) return
-    
+
     const newTerminals = terminals.filter(t => t.id !== terminalId)
     setTerminals(newTerminals)
-    
+
     if (activeTerminal === terminalId) {
       setActiveTerminal(newTerminals[0]?.id || '')
     }
   }
 
   const handleClearTerminal = () => {
-    setTerminals(prev => prev.map(terminal => 
-      terminal.id === activeTerminal
-        ? { ...terminal, output: ['$ '] }
-        : terminal
-    ))
+    setTerminals(prev =>
+      prev.map(terminal =>
+        terminal.id === activeTerminal ? { ...terminal, output: ['$ '] } : terminal
+      )
+    )
   }
 
   const handleTerminalMenuClick: MenuProps['onClick'] = ({ key }) => {
@@ -219,21 +213,16 @@ export const TerminalPanel: React.FC = () => {
     key: terminal.id,
     label: (
       <div className="flex items-center gap-2 group">
-        <TerminalOutlined />
+        <ConsoleSqlOutlined />
         <span>{terminal.title}</span>
-        {terminal.isRunning && (
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-        )}
+        {terminal.isRunning && <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />}
         {terminals.length > 1 && (
           <Button
             type="text"
             icon={<CloseOutlined />}
             size="small"
-            className={cn(
-              'w-4 h-4 p-0 opacity-0 group-hover:opacity-100',
-              'hover:bg-gray-600'
-            )}
-            onClick={(e) => {
+            className={cn('w-4 h-4 p-0 opacity-0 group-hover:opacity-100', 'hover:bg-gray-600')}
+            onClick={e => {
               e.stopPropagation()
               handleCloseTerminal(terminal.id)
             }}
@@ -246,12 +235,14 @@ export const TerminalPanel: React.FC = () => {
   return (
     <div className="h-full flex flex-col bg-gray-900 text-green-400">
       {/* 终端头部 */}
-      <div className={cn(
-        'flex items-center justify-between px-3 py-1',
-        'bg-gray-800 border-b border-gray-700'
-      )}>
+      <div
+        className={cn(
+          'flex items-center justify-between px-3 py-1',
+          'bg-gray-800 border-b border-gray-700'
+        )}
+      >
         <Text className="text-gray-300 text-sm">终端</Text>
-        
+
         <Space size="small">
           <Button
             type="text"
@@ -260,7 +251,7 @@ export const TerminalPanel: React.FC = () => {
             onClick={handleNewTerminal}
             className="text-gray-400 hover:text-white hover:bg-gray-700"
           />
-          
+
           <Button
             type="text"
             icon={<ClearOutlined />}
@@ -268,7 +259,7 @@ export const TerminalPanel: React.FC = () => {
             onClick={handleClearTerminal}
             className="text-gray-400 hover:text-white hover:bg-gray-700"
           />
-          
+
           <Dropdown
             menu={{
               items: terminalMenuItems,
@@ -313,33 +304,34 @@ export const TerminalPanel: React.FC = () => {
           {currentTerminal?.output.map((line, index) => (
             <div key={index} className="whitespace-pre-wrap">
               {line}
-              {index === currentTerminal.output.length - 1 && 
-               !currentTerminal.isRunning && 
-               line.endsWith('$ ') && (
-                <Input
-                  ref={inputRef}
-                  value={currentTerminal.currentCommand}
-                  onChange={(e) => {
-                    setTerminals(prev => prev.map(terminal => 
-                      terminal.id === activeTerminal
-                        ? { ...terminal, currentCommand: e.target.value }
-                        : terminal
-                    ))
-                  }}
-                  onPressEnter={(e) => {
-                    handleCommandSubmit(currentTerminal.currentCommand)
-                  }}
-                  className={cn(
-                    'inline-block bg-transparent border-0 p-0 text-green-400',
-                    'focus:shadow-none [&_.ant-input]:bg-transparent [&_.ant-input]:border-0',
-                    '[&_.ant-input]:text-green-400 [&_.ant-input]:p-0',
-                    '[&_.ant-input:focus]:shadow-none [&_.ant-input:focus]:border-0'
-                  )}
-                  style={{ width: 'auto', minWidth: '200px' }}
-                />
-              )}
-              {index === currentTerminal.output.length - 1 && 
-               currentTerminal.isRunning && (
+              {index === currentTerminal.output.length - 1 &&
+                !currentTerminal.isRunning &&
+                line.endsWith('$ ') && (
+                  <Input
+                    ref={inputRef}
+                    value={currentTerminal.currentCommand}
+                    onChange={e => {
+                      setTerminals(prev =>
+                        prev.map(terminal =>
+                          terminal.id === activeTerminal
+                            ? { ...terminal, currentCommand: e.target.value }
+                            : terminal
+                        )
+                      )
+                    }}
+                    onPressEnter={e => {
+                      handleCommandSubmit(currentTerminal.currentCommand)
+                    }}
+                    className={cn(
+                      'inline-block bg-transparent border-0 p-0 text-green-400',
+                      'focus:shadow-none [&_.ant-input]:bg-transparent [&_.ant-input]:border-0',
+                      '[&_.ant-input]:text-green-400 [&_.ant-input]:p-0',
+                      '[&_.ant-input:focus]:shadow-none [&_.ant-input:focus]:border-0'
+                    )}
+                    style={{ width: 'auto', minWidth: '200px' }}
+                  />
+                )}
+              {index === currentTerminal.output.length - 1 && currentTerminal.isRunning && (
                 <span className="animate-pulse">█</span>
               )}
             </div>

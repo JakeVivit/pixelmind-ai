@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Layout, Splitter } from 'antd'
+import { Layout } from 'antd'
 import { WorkspaceHeader } from './components/WorkspaceHeader'
 import { ProjectSidebar } from './components/ProjectSidebar'
 import { CodeEditor } from './components/CodeEditor'
@@ -20,12 +20,9 @@ export const WorkspacePage: React.FC = () => {
   const [terminalVisible, setTerminalVisible] = useState(true)
 
   return (
-    <div className={cn(
-      'h-screen flex flex-col',
-      'bg-gray-50 dark:bg-gray-950'
-    )}>
+    <div className={cn('h-screen flex flex-col', 'bg-gray-50 dark:bg-gray-950')}>
       {/* 工作台头部 */}
-      <WorkspaceHeader 
+      <WorkspaceHeader
         onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
         onToggleAI={() => setAiPanelVisible(!aiPanelVisible)}
         onToggleTerminal={() => setTerminalVisible(!terminalVisible)}
@@ -37,44 +34,40 @@ export const WorkspacePage: React.FC = () => {
       {/* 主要工作区域 */}
       <div className="flex-1 flex overflow-hidden">
         {/* 左侧边栏 - 项目文件和管理 */}
-        <div className={cn(
-          'transition-all duration-300',
-          sidebarCollapsed ? 'w-0' : 'w-80',
-          'border-r border-gray-200 dark:border-gray-700',
-          'bg-white dark:bg-gray-900'
-        )}>
-          {!sidebarCollapsed && (
-            <ProjectSidebar />
+        <div
+          className={cn(
+            'transition-all duration-300',
+            sidebarCollapsed ? 'w-0' : 'w-80',
+            'border-r border-gray-200 dark:border-gray-700',
+            'bg-white dark:bg-gray-900'
           )}
+        >
+          {!sidebarCollapsed && <ProjectSidebar />}
         </div>
 
         {/* 中间区域 - 编辑器和预览 */}
         <div className="flex-1 flex flex-col">
           {/* 编辑器和预览区域 */}
-          <div className="flex-1">
-            <Splitter>
-              {/* 代码编辑器 */}
-              <Splitter.Panel defaultSize="50%" min="30%">
-                <div className="h-full">
-                  <CodeEditor />
-                </div>
-              </Splitter.Panel>
+          <div className="flex-1 flex">
+            {/* 代码编辑器 */}
+            <div className="flex-1 border-r border-gray-200 dark:border-gray-700">
+              <CodeEditor />
+            </div>
 
-              {/* 预览面板 */}
-              <Splitter.Panel defaultSize="50%" min="30%">
-                <div className="h-full">
-                  <PreviewPanel />
-                </div>
-              </Splitter.Panel>
-            </Splitter>
+            {/* 预览面板 */}
+            <div className="flex-1">
+              <PreviewPanel />
+            </div>
           </div>
 
           {/* 底部终端区域 */}
           {terminalVisible && (
-            <div className={cn(
-              'h-64 border-t border-gray-200 dark:border-gray-700',
-              'bg-gray-900 dark:bg-gray-950'
-            )}>
+            <div
+              className={cn(
+                'h-64 border-t border-gray-200 dark:border-gray-700',
+                'bg-gray-900 dark:bg-gray-950'
+              )}
+            >
               <TerminalPanel />
             </div>
           )}
@@ -82,10 +75,12 @@ export const WorkspacePage: React.FC = () => {
 
         {/* 右侧 AI 助手面板 */}
         {aiPanelVisible && (
-          <div className={cn(
-            'w-96 border-l border-gray-200 dark:border-gray-700',
-            'bg-white dark:bg-gray-900'
-          )}>
+          <div
+            className={cn(
+              'w-96 border-l border-gray-200 dark:border-gray-700',
+              'bg-white dark:bg-gray-900'
+            )}
+          >
             <AIAssistant />
           </div>
         )}

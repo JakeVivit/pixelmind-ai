@@ -4,7 +4,7 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   RobotOutlined,
-  TerminalOutlined,
+  ConsoleSqlOutlined,
   PlayCircleOutlined,
   SaveOutlined,
   ShareAltOutlined,
@@ -83,12 +83,14 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
   }
 
   return (
-    <div className={cn(
-      'h-14 px-4 flex items-center justify-between',
-      'bg-white dark:bg-gray-900',
-      'border-b border-gray-200 dark:border-gray-700',
-      'shadow-sm'
-    )}>
+    <div
+      className={cn(
+        'h-14 px-4 flex items-center justify-between',
+        'bg-white dark:bg-gray-900',
+        'border-b border-gray-200 dark:border-gray-700',
+        'shadow-sm'
+      )}
+    >
       {/* 左侧 - 导航和项目信息 */}
       <div className="flex items-center gap-4">
         {/* 侧边栏切换 */}
@@ -122,9 +124,7 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
               title: (
                 <div className="flex items-center gap-2">
                   <FolderOpenOutlined className="text-primary-500" />
-                  <Text className="text-gray-900 dark:text-gray-100 font-medium">
-                    我的项目
-                  </Text>
+                  <Text className="text-gray-900 dark:text-gray-100 font-medium">我的项目</Text>
                 </div>
               ),
             },
@@ -153,9 +153,7 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
           }}
           placement="bottomRight"
         >
-          <Button icon={<SettingOutlined />}>
-            项目操作
-          </Button>
+          <Button icon={<SettingOutlined />}>项目操作</Button>
         </Dropdown>
       </div>
 
@@ -164,12 +162,12 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
         <Tooltip title={terminalVisible ? '隐藏终端' : '显示终端'}>
           <Button
             type="text"
-            icon={<TerminalOutlined />}
+            icon={<ConsoleSqlOutlined />}
             onClick={onToggleTerminal}
             className={cn(
               'w-8 h-8 p-0',
-              terminalVisible 
-                ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/50' 
+              terminalVisible
+                ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/50'
                 : 'text-gray-600 dark:text-gray-300',
               'hover:bg-gray-100 dark:hover:bg-gray-800'
             )}
@@ -183,8 +181,8 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
             onClick={onToggleAI}
             className={cn(
               'w-8 h-8 p-0',
-              aiPanelVisible 
-                ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/50' 
+              aiPanelVisible
+                ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/50'
                 : 'text-gray-600 dark:text-gray-300',
               'hover:bg-gray-100 dark:hover:bg-gray-800'
             )}
