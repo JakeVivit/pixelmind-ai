@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 
 // Define the possible views in the application
-export type AppView = 'welcome' | 'editor' | 'preview' | 'webcontainer'
+export type AppView = 'home' | 'welcome' | 'editor' | 'preview' | 'webcontainer'
 
 // Define the application state interface
 interface AppState {
@@ -41,7 +41,7 @@ interface AppState {
 
 // Initial state
 const initialState = {
-  currentView: 'welcome' as AppView,
+  currentView: 'home' as AppView,
   isLoading: false,
   loadingMessage: '',
   isWebContainerReady: false,

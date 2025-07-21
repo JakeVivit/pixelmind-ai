@@ -14,6 +14,7 @@ import {
 } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
 import { useAppStore, type AppView } from '@core/store/useAppStore'
+import { ThemeToggle } from '../components/ui/ThemeToggle'
 
 const { Header } = Layout
 const { Text } = Typography
@@ -28,25 +29,30 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   // Navigation menu items
   const navigationItems: MenuProps['items'] = [
     {
-      key: 'welcome',
+      key: 'home',
       icon: <HomeOutlined />,
-      label: 'Welcome',
+      label: '首页',
+    },
+    {
+      key: 'welcome',
+      icon: <QuestionCircleOutlined />,
+      label: '欢迎页',
     },
     {
       key: 'webcontainer',
       icon: <ThunderboltOutlined />,
-      label: 'WebContainer Demo',
+      label: 'WebContainer 演示',
     },
     {
       key: 'editor',
       icon: <CodeOutlined />,
-      label: 'Visual Editor',
+      label: '可视化编辑器',
       disabled: true, // Coming soon
     },
     {
       key: 'preview',
       icon: <EyeOutlined />,
-      label: 'Preview',
+      label: '预览',
       disabled: true, // Coming soon
     },
   ]
@@ -143,7 +149,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 fontSize: 16,
                 cursor: 'pointer',
               }}
-              onClick={() => setCurrentView('welcome')}
+              onClick={() => setCurrentView('home')}
             >
               P
             </div>
@@ -180,16 +186,19 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             icon={<QuestionCircleOutlined />}
             onClick={() => console.log('Open help')}
           >
-            Help
+            帮助
           </Button>
 
           <Button
             type="text"
             icon={<GithubOutlined />}
-            onClick={() => window.open('https://github.com/pixelmind-ai/pixelmind-ai', '_blank')}
+            onClick={() => window.open('https://github.com/JakeVivit/pixelmind-ai', '_blank')}
           >
             GitHub
           </Button>
+
+          {/* Theme toggle */}
+          <ThemeToggle />
 
           {/* User dropdown */}
           <Dropdown

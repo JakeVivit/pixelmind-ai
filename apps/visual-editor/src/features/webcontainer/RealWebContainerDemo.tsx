@@ -13,6 +13,10 @@ import {
   Tag,
   message,
   Steps,
+  Modal,
+  Input,
+  Form,
+  Divider,
 } from 'antd'
 import {
   PlayCircleOutlined,
@@ -25,7 +29,12 @@ import {
   ExclamationCircleOutlined,
   CodeOutlined,
   RocketOutlined,
+  RobotOutlined,
+  EditOutlined,
+  SendOutlined,
 } from '@ant-design/icons'
+import { GeminiAdapter } from '@pixelmind/prompt-engine'
+import type { AIGenerationRequest } from '@pixelmind/shared'
 
 const { Title, Text, Paragraph } = Typography
 
@@ -436,6 +445,19 @@ export const RealWebContainerDemo: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
+  // Gemini API 相关状态
+  const [isGeminiModalVisible, setIsGeminiModalVisible] = useState(false)
+  const [geminiApiKey, setGeminiApiKey] = useState<string>('')
+  const [isGeminiConfigured, setIsGeminiConfigured] = useState(false)
+  const [isGeminiProcessing, setIsGeminiProcessing] = useState(false)
+  const [geminiPrompt, setGeminiPrompt] = useState('')
+  const [geminiResponse, setGeminiResponse] = useState<string | null>(null)
+  const [form] = Form.useForm()
+  const geminiAdapterRef = useRef<GeminiAdapter | null>(null)
+
+  // WebContainer 缓存状态
+  const [isProjectSetup, setIsProjectSetup] = useState(false)
+
   const addLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString()
     setLogs(prev => [...prev, `[${timestamp}] ${message}`])
@@ -473,31 +495,51 @@ export const RealWebContainerDemo: React.FC = () => {
       setCurrentStep(2)
       addLog('项目文件创建完成')
 
-      // 步骤 3: 安装依赖
+      // 步骤 3: 安装依赖（优化：检查是否已安装）
       setIsInstalling(true)
-      addLog('正在安装依赖包...')
-      const installProcess = await wc.spawn('npm', ['install'])
 
-      installProcess.output.pipeTo(
-        new WritableStream({
-          write(data) {
-            const text = new TextDecoder().decode(data)
-            if (text.trim()) {
-              addLog(`npm: ${text.trim()}`)
-            }
-          },
-        })
-      )
-
-      const installExitCode = await installProcess.exit
-      setIsInstalling(false)
-
-      if (installExitCode !== 0) {
-        throw new Error(`依赖安装失败，退出码: ${installExitCode}`)
+      let needInstall = true
+      if (isProjectSetup) {
+        // 如果项目已经设置过，检查 node_modules 是否存在
+        try {
+          const nodeModulesExists = await wc.fs.readdir('/node_modules')
+          if (nodeModulesExists.length > 0) {
+            needInstall = false
+            addLog('检测到已安装的依赖，跳过安装步骤')
+          }
+        } catch {
+          // node_modules 不存在，需要安装
+          addLog('未检测到依赖，开始安装...')
+        }
+      } else {
+        addLog('首次安装依赖包...')
       }
 
+      if (needInstall) {
+        const installProcess = await wc.spawn('npm', ['install'])
+
+        installProcess.output.pipeTo(
+          new WritableStream<string>({
+            write(data: string) {
+              if (data.trim()) {
+                addLog(`npm: ${data.trim()}`)
+              }
+            },
+          })
+        )
+
+        const installExitCode = await installProcess.exit
+        if (installExitCode !== 0) {
+          throw new Error(`依赖安装失败，退出码: ${installExitCode}`)
+        }
+        addLog('依赖包安装完成')
+      } else {
+        addLog('跳过依赖安装')
+      }
+
+      setIsInstalling(false)
       setCurrentStep(3)
-      addLog('依赖包安装完成')
+      setIsProjectSetup(true)
 
       // 步骤 4: 启动开发服务器
       setIsStarting(true)
@@ -506,18 +548,17 @@ export const RealWebContainerDemo: React.FC = () => {
       const devProcess = await wc.spawn('npm', ['run', 'dev'])
 
       devProcess.output.pipeTo(
-        new WritableStream({
-          write(data) {
-            const text = new TextDecoder().decode(data)
-            if (text.trim()) {
-              addLog(`vite: ${text.trim()}`)
+        new WritableStream<string>({
+          write(data: string) {
+            if (data.trim()) {
+              addLog(`vite: ${data.trim()}`)
             }
           },
         })
       )
 
       // 等待服务器启动
-      wc.on('server-ready', (port, url) => {
+      wc.on('server-ready', (_port, url) => {
         setServerUrl(url)
         setIsStarting(false)
         setCurrentStep(4)
@@ -542,6 +583,7 @@ export const RealWebContainerDemo: React.FC = () => {
       setWebcontainer(null)
       setServerUrl(null)
       setCurrentStep(0)
+      setIsProjectSetup(false)
       addLog('WebContainer 已停止')
       message.info('WebContainer 已停止')
     }
@@ -550,6 +592,148 @@ export const RealWebContainerDemo: React.FC = () => {
   const openInNewTab = () => {
     if (serverUrl) {
       window.open(serverUrl, '_blank')
+    }
+  }
+
+  // Gemini API 相关函数
+  const handleGeminiConfig = () => {
+    setIsGeminiModalVisible(true)
+  }
+
+  const handleGeminiConfigSubmit = async () => {
+    try {
+      const values = await form.validateFields()
+      const apiKey = values.apiKey
+
+      // 初始化 GeminiAdapter
+      geminiAdapterRef.current = new GeminiAdapter(apiKey)
+
+      // 测试 API 连接
+      if (geminiAdapterRef.current.isInitialized()) {
+        setGeminiApiKey(apiKey)
+        setIsGeminiConfigured(true)
+        setIsGeminiModalVisible(false)
+        message.success('Gemini API 配置成功！')
+        addLog('Gemini API 已配置并连接成功')
+      } else {
+        throw new Error('API 初始化失败')
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '配置失败'
+      message.error(`配置失败: ${errorMessage}`)
+      addLog(`Gemini API 配置失败: ${errorMessage}`)
+    }
+  }
+
+  const handleGeminiPromptSubmit = async () => {
+    if (!geminiPrompt.trim()) {
+      message.warning('请输入修改指令')
+      return
+    }
+
+    if (!webcontainer) {
+      message.error('请先启动 WebContainer')
+      return
+    }
+
+    if (!geminiAdapterRef.current) {
+      message.error('Gemini API 未配置')
+      return
+    }
+
+    setIsGeminiProcessing(true)
+    addLog(`正在处理 AI 指令: ${geminiPrompt}`)
+
+    try {
+      // 读取当前的 App.tsx 内容
+      let currentCode = ''
+      try {
+        currentCode = await webcontainer.fs.readFile('/src/App.tsx', 'utf-8')
+      } catch {
+        // 如果文件不存在，使用默认内容
+        currentCode = `import React from 'react'
+import { Button, Space, Typography } from 'antd'
+
+const { Title } = Typography
+
+function App() {
+  return (
+    <div style={{ padding: 24 }}>
+      <Title level={2}>PixelMind AI React 演示</Title>
+      <Space>
+        <Button type="primary">主要按钮</Button>
+        <Button>普通按钮</Button>
+      </Space>
+    </div>
+  )
+}
+
+export default App`
+      }
+
+      // 构建 AI 请求 - 使用英文避免字符编码问题
+      const aiRequest: AIGenerationRequest = {
+        prompt: `Modify the React component code based on this instruction: ${geminiPrompt}
+
+Current code:
+\`\`\`tsx
+${currentCode}
+\`\`\`
+
+Please return the complete modified code, maintaining React + TypeScript + Ant Design style.
+Only return the code without explanations.`,
+        context: {
+          framework: 'react',
+          uiLibrary: 'antd',
+          existingComponents: [
+            {
+              id: 'app-component',
+              name: 'App',
+              code: currentCode,
+              type: 'functional',
+              props: [],
+              filePath: '/src/App.tsx',
+            },
+          ],
+        },
+        options: {
+          includeTypes: true,
+          includeStyles: true,
+          includeTests: false,
+        },
+      }
+
+      // 调用 Gemini API
+      addLog('正在调用 Gemini API...')
+      const response = await geminiAdapterRef.current.processRequest(aiRequest)
+
+      if (response.success && response.code) {
+        setGeminiResponse(response.code)
+        addLog('AI 代码生成完成')
+
+        // 将生成的代码写入 WebContainer
+        await webcontainer.fs.writeFile('/src/App.tsx', response.code)
+        addLog('代码已更新到 WebContainer')
+        message.success('AI 代码生成并更新成功！')
+
+        // 显示建议（如果有）
+        if (response.suggestions && response.suggestions.length > 0) {
+          addLog(`AI 建议: ${response.suggestions.join(', ')}`)
+        }
+      } else {
+        throw new Error(response.error || 'AI 生成失败')
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '未知错误'
+      addLog(`AI 处理失败: ${errorMessage}`)
+      message.error(`AI 处理失败: ${errorMessage}`)
+
+      // 如果是 API 错误，提供更详细的信息
+      if (errorMessage.includes('API')) {
+        message.info('请检查 API Key 是否正确，或稍后重试')
+      }
+    } finally {
+      setIsGeminiProcessing(false)
     }
   }
 
@@ -632,7 +816,7 @@ export const RealWebContainerDemo: React.FC = () => {
 
         {/* 控制按钮 */}
         <Card title="🎮 控制面板">
-          <Space size="middle">
+          <Space size="middle" wrap>
             <Button
               type="primary"
               size="large"
@@ -660,6 +844,30 @@ export const RealWebContainerDemo: React.FC = () => {
             {serverUrl && (
               <Button size="large" icon={<FullscreenOutlined />} onClick={openInNewTab}>
                 新标签页打开
+              </Button>
+            )}
+
+            <Divider type="vertical" style={{ height: 'auto' }} />
+
+            <Button
+              size="large"
+              icon={<RobotOutlined />}
+              onClick={handleGeminiConfig}
+              disabled={isGeminiConfigured}
+              type={isGeminiConfigured ? 'default' : 'dashed'}
+            >
+              {isGeminiConfigured ? 'Gemini 已配置' : '配置 Gemini API'}
+            </Button>
+
+            {isGeminiConfigured && webcontainer && (
+              <Button
+                size="large"
+                icon={<EditOutlined />}
+                onClick={() => setIsGeminiModalVisible(true)}
+                type="primary"
+                ghost
+              >
+                AI 代码修改
               </Button>
             )}
           </Space>
@@ -749,6 +957,205 @@ export const RealWebContainerDemo: React.FC = () => {
             )}
           </div>
         </Card>
+
+        {/* Gemini API 配置 Modal */}
+        <Modal
+          title={
+            <Space>
+              <RobotOutlined />
+              {isGeminiConfigured ? 'AI 代码修改' : '配置 Gemini API'}
+            </Space>
+          }
+          open={isGeminiModalVisible}
+          onCancel={() => {
+            setIsGeminiModalVisible(false)
+            setGeminiPrompt('')
+            setGeminiResponse(null)
+          }}
+          footer={null}
+          width={800}
+        >
+          {!isGeminiConfigured ? (
+            // API 配置界面
+            <Form form={form} layout="vertical" onFinish={handleGeminiConfigSubmit}>
+              <Form.Item
+                label="Gemini API Key"
+                name="apiKey"
+                rules={[{ required: true, message: '请输入 Gemini API Key' }]}
+              >
+                <Input.Password placeholder="请输入您的 Gemini API Key" size="large" />
+              </Form.Item>
+              <Form.Item>
+                <Space>
+                  <Button type="primary" htmlType="submit" icon={<RobotOutlined />}>
+                    配置 API
+                  </Button>
+                  <Button onClick={() => setIsGeminiModalVisible(false)}>取消</Button>
+                </Space>
+              </Form.Item>
+              <Alert
+                message="获取 API Key"
+                description={
+                  <div>
+                    <p>
+                      1. 访问{' '}
+                      <a
+                        href="https://makersuite.google.com/app/apikey"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Google AI Studio
+                      </a>
+                    </p>
+                    <p>2. 创建新的 API Key</p>
+                    <p>3. 复制并粘贴到上方输入框</p>
+                  </div>
+                }
+                type="info"
+                showIcon
+              />
+            </Form>
+          ) : (
+            // 代码修改界面
+            <Space direction="vertical" style={{ width: '100%' }} size="large">
+              {/* 状态提示 */}
+              <Alert
+                message="AI 代码修改功能"
+                description={
+                  <div>
+                    <p>• 输入自然语言指令来修改 WebContainer 中的 React 代码</p>
+                    <p>• 修改会实时反映在右侧预览中</p>
+                    <p>• 支持添加组件、修改样式、调整布局等操作</p>
+                  </div>
+                }
+                type="info"
+                showIcon
+                style={{ marginBottom: 16 }}
+              />
+
+              {/* WebContainer 状态检查 */}
+              {!webcontainer && (
+                <Alert
+                  message="请先启动 WebContainer"
+                  description="需要先启动 React 项目才能使用 AI 代码修改功能"
+                  type="warning"
+                  showIcon
+                />
+              )}
+
+              <Form.Item label="AI 修改指令">
+                <Input.TextArea
+                  value={geminiPrompt}
+                  onChange={e => setGeminiPrompt(e.target.value)}
+                  placeholder="例如：将按钮颜色改为红色，添加一个输入框，创建一个卡片组件..."
+                  rows={3}
+                  size="large"
+                  disabled={!webcontainer}
+                />
+
+                {/* 示例指令 */}
+                <div style={{ marginTop: 8 }}>
+                  <Text type="secondary" style={{ fontSize: 12 }}>
+                    快速示例：
+                  </Text>
+                  <div style={{ marginTop: 4 }}>
+                    <Space wrap size={[4, 4]}>
+                      <Button
+                        size="small"
+                        type="link"
+                        onClick={() => setGeminiPrompt('将主要按钮的颜色改为红色')}
+                        disabled={!webcontainer || isGeminiProcessing}
+                      >
+                        改变按钮颜色
+                      </Button>
+                      <Button
+                        size="small"
+                        type="link"
+                        onClick={() => setGeminiPrompt('添加一个输入框和提交按钮')}
+                        disabled={!webcontainer || isGeminiProcessing}
+                      >
+                        添加输入框
+                      </Button>
+                      <Button
+                        size="small"
+                        type="link"
+                        onClick={() => setGeminiPrompt('创建一个包含图片和描述的卡片组件')}
+                        disabled={!webcontainer || isGeminiProcessing}
+                      >
+                        添加卡片
+                      </Button>
+                      <Button
+                        size="small"
+                        type="link"
+                        onClick={() => setGeminiPrompt('添加一个数据表格显示用户信息')}
+                        disabled={!webcontainer || isGeminiProcessing}
+                      >
+                        添加表格
+                      </Button>
+                    </Space>
+                  </div>
+                </div>
+              </Form.Item>
+
+              <Space>
+                <Button
+                  type="primary"
+                  icon={<SendOutlined />}
+                  onClick={handleGeminiPromptSubmit}
+                  loading={isGeminiProcessing}
+                  disabled={!geminiPrompt.trim() || !webcontainer}
+                  size="large"
+                >
+                  {isGeminiProcessing ? '处理中...' : '发送指令'}
+                </Button>
+                <Button
+                  onClick={() => {
+                    setGeminiPrompt('')
+                    setGeminiResponse(null)
+                  }}
+                  disabled={isGeminiProcessing}
+                >
+                  清空
+                </Button>
+              </Space>
+
+              {/* 处理状态显示 */}
+              {isGeminiProcessing && (
+                <Card size="small">
+                  <Space direction="vertical" style={{ width: '100%' }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <RobotOutlined spin style={{ fontSize: 24, color: '#1890ff' }} />
+                      <div style={{ marginTop: 8 }}>AI 正在处理您的指令...</div>
+                    </div>
+                    <Progress percent={50} status="active" showInfo={false} />
+                  </Space>
+                </Card>
+              )}
+
+              {geminiResponse && (
+                <Card title="🤖 AI 生成的代码" size="small">
+                  <pre
+                    style={{
+                      background: '#f6f8fa',
+                      padding: 12,
+                      borderRadius: 4,
+                      fontSize: 12,
+                      overflow: 'auto',
+                      maxHeight: 300,
+                    }}
+                  >
+                    {geminiResponse}
+                  </pre>
+                  <div style={{ marginTop: 12, textAlign: 'center' }}>
+                    <Tag color="green" icon={<CheckCircleOutlined />}>
+                      代码已应用到 WebContainer
+                    </Tag>
+                  </div>
+                </Card>
+              )}
+            </Space>
+          )}
+        </Modal>
       </Space>
     </div>
   )

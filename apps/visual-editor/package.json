@@ -23,7 +23,15 @@
     "@google/generative-ai": "^0.1.0",
     "@babel/parser": "^7.23.0",
     "@babel/traverse": "^7.23.0",
-    "@babel/types": "^7.23.0"
+    "@babel/types": "^7.23.0",
+    "@pixelmind/prompt-engine": "workspace:*",
+    "@pixelmind/shared": "workspace:*",
+    "tailwindcss": "^3.4.0",
+    "@tailwindcss/typography": "^0.5.0",
+    "clsx": "^2.0.0",
+    "tailwind-merge": "^2.0.0",
+    "framer-motion": "^10.16.0",
+    "lucide-react": "^0.294.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",
@@ -35,6 +43,8 @@
     "eslint": "^8.55.0",
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",
-    "prettier": "^3.1.0"
+    "prettier": "^3.1.0",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32"
   }
 }

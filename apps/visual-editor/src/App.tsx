@@ -3,6 +3,7 @@ import { Layout } from 'antd'
 import { MainLayout } from '@layouts/MainLayout'
 import { WelcomePage } from '@features/welcome/WelcomePage'
 import { RealWebContainerDemo } from '@features/webcontainer/RealWebContainerDemo'
+import { HomePage } from '@features/home/HomePage'
 import { useAppStore } from '@core/store/useAppStore'
 
 const { Content } = Layout
@@ -12,6 +13,8 @@ export const App: React.FC = () => {
 
   const renderContent = () => {
     switch (currentView) {
+      case 'home':
+        return <HomePage />
       case 'welcome':
         return <WelcomePage />
       case 'editor':
@@ -23,7 +26,7 @@ export const App: React.FC = () => {
       case 'webcontainer':
         return <RealWebContainerDemo />
       default:
-        return <WelcomePage />
+        return <HomePage />
     }
   }
 

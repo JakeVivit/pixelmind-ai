@@ -1,20 +1,20 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { ConfigProvider } from 'antd'
 import { App } from './App'
 import { GlobalProvider } from '@providers/GlobalProvider'
-import { theme } from '@styles/theme'
+import { ThemeProvider } from './providers/ThemeProvider'
 import '@styles/global.css'
+import './styles/globals.css'
 
 // Enable React strict mode for better development experience
 const StrictMode = import.meta.env.DEV ? React.StrictMode : React.Fragment
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ConfigProvider theme={theme}>
+    <ThemeProvider>
       <GlobalProvider>
         <App />
       </GlobalProvider>
-    </ConfigProvider>
+    </ThemeProvider>
   </StrictMode>
 )

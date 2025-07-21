@@ -3,6 +3,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import type { AIGenerationRequest, AIGenerationResponse } from '@pixelmind/shared'
 import { PromptEngine, type PromptContext } from './core'
+import { DEFAULT_TEMPLATES } from './templates'
 
 export class GeminiAdapter extends PromptEngine {
   private genAI: GoogleGenerativeAI | null = null
@@ -10,7 +11,12 @@ export class GeminiAdapter extends PromptEngine {
 
   constructor(apiKey?: string) {
     super()
-    
+
+    // Register default templates
+    DEFAULT_TEMPLATES.forEach(template => {
+      this.registerTemplate(template)
+    })
+
     if (apiKey) {
       this.initialize(apiKey)
     }
@@ -22,7 +28,8 @@ export class GeminiAdapter extends PromptEngine {
   initialize(apiKey: string): void {
     try {
       this.genAI = new GoogleGenerativeAI(apiKey)
-      this.model = this.genAI.getGenerativeModel({ model: 'gemini-pro' })
+      // 使用新的模型名称 - gemini-1.5-flash 是当前推荐的模型
+      this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
     } catch (error) {
       console.error('Failed to initialize Gemini AI:', error)
       throw new Error('Failed to initialize Gemini AI')
@@ -141,7 +148,7 @@ export class GeminiAdapter extends PromptEngine {
     // Extract suggestions (lines starting with "// Suggestion:" or "// Note:")
     const suggestionRegex = /\/\/\s*(Suggestion|Note|Tip):\s*(.+)/g
     const suggestions: string[] = []
-    
+
     while ((match = suggestionRegex.exec(response)) !== null) {
       suggestions.push(match[2])
     }
@@ -153,7 +160,7 @@ export class GeminiAdapter extends PromptEngine {
     // Extract dependencies (import statements)
     const importRegex = /import\s+.*?\s+from\s+['"]([^'"]+)['"]/g
     const dependencies: string[] = []
-    
+
     while ((match = importRegex.exec(code)) !== null) {
       dependencies.push(match[1])
     }
