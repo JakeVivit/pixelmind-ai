@@ -4,6 +4,7 @@ import { MainLayout } from '@layouts/MainLayout'
 import { WelcomePage } from '@features/welcome/WelcomePage'
 import { RealWebContainerDemo } from '@features/webcontainer/RealWebContainerDemo'
 import { HomePage } from '@features/home/HomePage'
+import { WorkspacePage } from '@features/workspace/WorkspacePage'
 import { useAppStore } from '@core/store/useAppStore'
 
 const { Content } = Layout
@@ -17,6 +18,8 @@ export const App: React.FC = () => {
         return <HomePage />
       case 'welcome':
         return <WelcomePage />
+      case 'workspace':
+        return <WorkspacePage />
       case 'editor':
         // TODO: Implement visual editor
         return <div>Visual Editor (Coming Soon)</div>
@@ -28,6 +31,11 @@ export const App: React.FC = () => {
       default:
         return <HomePage />
     }
+  }
+
+  // 工作台使用独立布局，其他页面使用主布局
+  if (currentView === 'workspace') {
+    return renderContent()
   }
 
   return (

@@ -34,6 +34,11 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       label: '首页',
     },
     {
+      key: 'workspace',
+      icon: <CodeOutlined />,
+      label: '工作台',
+    },
+    {
       key: 'welcome',
       icon: <QuestionCircleOutlined />,
       label: '欢迎页',
@@ -45,7 +50,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     },
     {
       key: 'editor',
-      icon: <CodeOutlined />,
+      icon: <EyeOutlined />,
       label: '可视化编辑器',
       disabled: true, // Coming soon
     },

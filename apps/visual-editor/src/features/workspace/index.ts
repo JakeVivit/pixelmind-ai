@@ -1,0 +1,7 @@
+export { WorkspacePage } from './WorkspacePage'
+export { WorkspaceHeader } from './components/WorkspaceHeader'
+export { ProjectSidebar } from './components/ProjectSidebar'
+export { CodeEditor } from './components/CodeEditor'
+export { PreviewPanel } from './components/PreviewPanel'
+export { AIAssistant } from './components/AIAssistant'
+export { TerminalPanel } from './components/TerminalPanel'

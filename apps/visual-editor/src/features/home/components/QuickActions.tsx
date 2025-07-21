@@ -1,16 +1,17 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { Button } from 'antd'
-import { 
-  PlusOutlined, 
-  CodeOutlined, 
-  RobotOutlined, 
+import {
+  PlusOutlined,
+  CodeOutlined,
+  RobotOutlined,
   AppstoreOutlined,
   ImportOutlined,
   PlayCircleOutlined,
-  ArrowRightOutlined
+  ArrowRightOutlined,
 } from '@ant-design/icons'
 import { cn } from '../../../utils/cn'
+import { useAppStore } from '../../../core/store/useAppStore'
 
 interface QuickAction {
   id: string
@@ -26,23 +27,25 @@ interface QuickAction {
  * 快速操作组件
  */
 export const QuickActions: React.FC = () => {
+  const { setCurrentView } = useAppStore()
+
   const quickActions: QuickAction[] = [
     {
       id: 'create-project',
       title: '创建新项目',
       description: '从零开始创建 React 或 Vue 项目，选择你喜欢的模板和配置',
       icon: <PlusOutlined className="text-xl" />,
-      action: () => console.log('创建新项目'),
+      action: () => setCurrentView('workspace'),
       primary: true,
-      color: 'from-primary-500 to-primary-600'
+      color: 'from-primary-500 to-primary-600',
     },
     {
       id: 'webcontainer-demo',
       title: 'WebContainer 演示',
       description: '体验完整的浏览器开发环境，包括代码编辑、依赖安装和实时预览',
       icon: <CodeOutlined className="text-xl" />,
-      action: () => console.log('WebContainer 演示'),
-      color: 'from-blue-500 to-cyan-500'
+      action: () => setCurrentView('webcontainer'),
+      color: 'from-blue-500 to-cyan-500',
     },
     {
       id: 'ai-playground',
@@ -50,7 +53,7 @@ export const QuickActions: React.FC = () => {
       description: '体验 AI 驱动的代码生成，通过自然语言描述生成 React 组件',
       icon: <RobotOutlined className="text-xl" />,
       action: () => console.log('AI 代码助手'),
-      color: 'from-purple-500 to-pink-500'
+      color: 'from-purple-500 to-pink-500',
     },
     {
       id: 'template-gallery',
@@ -58,7 +61,7 @@ export const QuickActions: React.FC = () => {
       description: '浏览精心设计的项目模板，包括管理后台、电商网站、博客等',
       icon: <AppstoreOutlined className="text-xl" />,
       action: () => console.log('模板库'),
-      color: 'from-green-500 to-emerald-500'
+      color: 'from-green-500 to-emerald-500',
     },
     {
       id: 'import-project',
@@ -66,7 +69,7 @@ export const QuickActions: React.FC = () => {
       description: '导入你的 GitHub 项目或本地代码，在云端继续开发',
       icon: <ImportOutlined className="text-xl" />,
       action: () => console.log('导入项目'),
-      color: 'from-orange-500 to-red-500'
+      color: 'from-orange-500 to-red-500',
     },
     {
       id: 'interactive-tutorial',
@@ -74,8 +77,8 @@ export const QuickActions: React.FC = () => {
       description: '通过实际操作学习如何使用 PixelMind AI 的各种功能',
       icon: <PlayCircleOutlined className="text-xl" />,
       action: () => console.log('交互式教程'),
-      color: 'from-indigo-500 to-blue-500'
-    }
+      color: 'from-indigo-500 to-blue-500',
+    },
   ]
 
   return (
@@ -100,10 +103,7 @@ export const QuickActions: React.FC = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
             viewport={{ once: true }}
-            className={cn(
-              'text-lg text-gray-600 dark:text-gray-300',
-              'max-w-2xl mx-auto'
-            )}
+            className={cn('text-lg text-gray-600 dark:text-gray-300', 'max-w-2xl mx-auto')}
           >
             选择最适合你的方式开始探索 PixelMind AI 的强大功能
           </motion.p>
@@ -131,45 +131,53 @@ export const QuickActions: React.FC = () => {
               onClick={action.action}
             >
               {/* 背景渐变效果 */}
-              <div className={cn(
-                'absolute inset-0 opacity-0 group-hover:opacity-5',
-                'bg-gradient-to-br',
-                action.color,
-                'transition-opacity duration-300'
-              )} />
+              <div
+                className={cn(
+                  'absolute inset-0 opacity-0 group-hover:opacity-5',
+                  'bg-gradient-to-br',
+                  action.color,
+                  'transition-opacity duration-300'
+                )}
+              />
 
               {/* 主要内容 */}
               <div className="relative">
                 {/* 图标和标题 */}
                 <div className="flex items-start gap-4 mb-4">
-                  <div className={cn(
-                    'w-12 h-12 rounded-xl flex items-center justify-center',
-                    'bg-gradient-to-br',
-                    action.color,
-                    'text-white shadow-lg',
-                    'group-hover:scale-110 transition-transform duration-300'
-                  )}>
+                  <div
+                    className={cn(
+                      'w-12 h-12 rounded-xl flex items-center justify-center',
+                      'bg-gradient-to-br',
+                      action.color,
+                      'text-white shadow-lg',
+                      'group-hover:scale-110 transition-transform duration-300'
+                    )}
+                  >
                     {action.icon}
                   </div>
-                  
+
                   <div className="flex-1">
-                    <h3 className={cn(
-                      'text-lg font-semibold mb-2',
-                      'text-gray-900 dark:text-gray-100',
-                      'group-hover:text-primary-600 dark:group-hover:text-primary-400',
-                      'transition-colors duration-300'
-                    )}>
+                    <h3
+                      className={cn(
+                        'text-lg font-semibold mb-2',
+                        'text-gray-900 dark:text-gray-100',
+                        'group-hover:text-primary-600 dark:group-hover:text-primary-400',
+                        'transition-colors duration-300'
+                      )}
+                    >
                       {action.title}
                     </h3>
                   </div>
                 </div>
 
                 {/* 描述 */}
-                <p className={cn(
-                  'text-gray-600 dark:text-gray-300',
-                  'leading-relaxed mb-4',
-                  'text-sm'
-                )}>
+                <p
+                  className={cn(
+                    'text-gray-600 dark:text-gray-300',
+                    'leading-relaxed mb-4',
+                    'text-sm'
+                  )}
+                >
                   {action.description}
                 </p>
 
@@ -189,15 +197,17 @@ export const QuickActions: React.FC = () => {
               </div>
 
               {/* 装饰元素 */}
-              <div className={cn(
-                'absolute top-0 right-0 w-16 h-16',
-                'bg-gradient-to-br',
-                action.color,
-                'opacity-0 group-hover:opacity-10',
-                'rounded-full blur-xl',
-                'transition-opacity duration-300',
-                'transform translate-x-6 -translate-y-6'
-              )} />
+              <div
+                className={cn(
+                  'absolute top-0 right-0 w-16 h-16',
+                  'bg-gradient-to-br',
+                  action.color,
+                  'opacity-0 group-hover:opacity-10',
+                  'rounded-full blur-xl',
+                  'transition-opacity duration-300',
+                  'transform translate-x-6 -translate-y-6'
+                )}
+              />
             </motion.div>
           ))}
         </div>
@@ -210,13 +220,15 @@ export const QuickActions: React.FC = () => {
           viewport={{ once: true }}
           className="text-center mt-16"
         >
-          <div className={cn(
-            'inline-flex items-center gap-2 px-4 py-2 rounded-full',
-            'bg-primary-50 dark:bg-primary-950/50',
-            'border border-primary-200 dark:border-primary-800',
-            'text-primary-700 dark:text-primary-300',
-            'text-sm'
-          )}>
+          <div
+            className={cn(
+              'inline-flex items-center gap-2 px-4 py-2 rounded-full',
+              'bg-primary-50 dark:bg-primary-950/50',
+              'border border-primary-200 dark:border-primary-800',
+              'text-primary-700 dark:text-primary-300',
+              'text-sm'
+            )}
+          >
             💡 提示：所有功能都可以免费体验，无需注册
           </div>
         </motion.div>
