@@ -1,9 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   darkMode: 'class',
   theme: {
     extend: {
@@ -51,7 +48,7 @@ export default {
           800: '#1f2937',
           900: '#111827',
           950: '#030712',
-        }
+        },
       },
       fontFamily: {
         sans: [
@@ -79,7 +76,7 @@ export default {
         'slide-up': 'slideUp 0.5s ease-out',
         'slide-down': 'slideDown 0.5s ease-out',
         'scale-in': 'scaleIn 0.3s ease-out',
-        'float': 'float 3s ease-in-out infinite',
+        float: 'float 3s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -108,11 +105,9 @@ export default {
       },
     },
   },
-  plugins: [
-    require('@tailwindcss/typography'),
-  ],
-  // 避免与 Ant Design 样式冲突
+  plugins: [require('@tailwindcss/typography')],
+  // 启用 preflight 以确保边框等基础样式正常工作
   corePlugins: {
-    preflight: false,
+    preflight: true,
   },
 }

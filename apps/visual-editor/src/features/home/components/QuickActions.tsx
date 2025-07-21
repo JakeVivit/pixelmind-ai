@@ -1,5 +1,6 @@
 import React from 'react'
 import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import { Button } from 'antd'
 import {
   PlusOutlined,
@@ -11,7 +12,6 @@ import {
   ArrowRightOutlined,
 } from '@ant-design/icons'
 import { cn } from '../../../utils/cn'
-import { useAppStore } from '../../../core/store/useAppStore'
 
 interface QuickAction {
   id: string
@@ -27,15 +27,15 @@ interface QuickAction {
  * 快速操作组件
  */
 export const QuickActions: React.FC = () => {
-  const { setCurrentView } = useAppStore()
+  const navigate = useNavigate()
 
   const quickActions: QuickAction[] = [
     {
       id: 'create-project',
       title: '创建新项目',
-      description: '从零开始创建 React 或 Vue 项目，选择你喜欢的模板和配置',
+      description: '从零开始创建项目，管理页面和组件，使用可视化编辑器',
       icon: <PlusOutlined className="text-xl" />,
-      action: () => setCurrentView('workspace'),
+      action: () => navigate('/projects'),
       primary: true,
       color: 'from-primary-500 to-primary-600',
     },
@@ -44,7 +44,7 @@ export const QuickActions: React.FC = () => {
       title: 'WebContainer 演示',
       description: '体验完整的浏览器开发环境，包括代码编辑、依赖安装和实时预览',
       icon: <CodeOutlined className="text-xl" />,
-      action: () => setCurrentView('webcontainer'),
+      action: () => navigate('/webcontainer'),
       color: 'from-blue-500 to-cyan-500',
     },
     {

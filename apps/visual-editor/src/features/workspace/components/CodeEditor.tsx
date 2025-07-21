@@ -31,7 +31,7 @@ interface FileTab {
 export const CodeEditor: React.FC = () => {
   const { isDark } = useTheme()
   const editorRef = useRef<any>(null)
-  
+
   const [activeTab, setActiveTab] = useState('App.tsx')
   const [tabs, setTabs] = useState<FileTab[]>([
     {
@@ -86,11 +86,9 @@ export default App`,
 
   const handleEditorChange = (value: string | undefined) => {
     if (value !== undefined) {
-      setTabs(prev => prev.map(tab => 
-        tab.key === activeTab 
-          ? { ...tab, content: value, modified: true }
-          : tab
-      ))
+      setTabs(prev =>
+        prev.map(tab => (tab.key === activeTab ? { ...tab, content: value, modified: true } : tab))
+      )
     }
   }
 
@@ -100,21 +98,17 @@ export default App`,
 
   const handleTabClose = (targetKey: string) => {
     if (tabs.length === 1) return
-    
+
     const newTabs = tabs.filter(tab => tab.key !== targetKey)
     setTabs(newTabs)
-    
+
     if (activeTab === targetKey) {
       setActiveTab(newTabs[0]?.key || '')
     }
   }
 
   const handleSave = () => {
-    setTabs(prev => prev.map(tab => 
-      tab.key === activeTab 
-        ? { ...tab, modified: false }
-        : tab
-    ))
+    setTabs(prev => prev.map(tab => (tab.key === activeTab ? { ...tab, modified: false } : tab)))
     console.log('保存文件:', activeTab)
   }
 
@@ -139,9 +133,7 @@ export default App`,
     label: (
       <div className="flex items-center gap-2 group">
         <CodeOutlined className="text-blue-500" />
-        <span className={cn(
-          tab.modified && 'italic'
-        )}>
+        <span className={cn(tab.modified && 'italic')}>
           {tab.title}
           {tab.modified && '*'}
         </span>
@@ -154,7 +146,7 @@ export default App`,
               'w-4 h-4 p-0 opacity-0 group-hover:opacity-100',
               'hover:bg-gray-200 dark:hover:bg-gray-700'
             )}
-            onClick={(e) => {
+            onClick={e => {
               e.stopPropagation()
               handleTabClose(tab.key)
             }}
@@ -168,15 +160,15 @@ export default App`,
   return (
     <div className="h-full flex flex-col">
       {/* 编辑器头部 */}
-      <div className={cn(
-        'flex items-center justify-between px-3 py-2',
-        'bg-gray-50 dark:bg-gray-800',
-        'border-b border-gray-200 dark:border-gray-700'
-      )}>
-        <Text className="font-medium text-gray-900 dark:text-gray-100">
-          代码编辑器
-        </Text>
-        
+      <div
+        className={cn(
+          'flex items-center justify-between px-3 py-2',
+          'bg-gray-50 dark:bg-gray-800',
+          'border-b border-gray-200 dark:border-gray-700'
+        )}
+      >
+        <Text className="font-medium text-gray-900 dark:text-gray-100">代码编辑器</Text>
+
         <Space size="small">
           <Tooltip title="保存 (Ctrl+S)">
             <Button
@@ -185,37 +177,23 @@ export default App`,
               size="small"
               onClick={handleSave}
               className={cn(
-                currentTab?.modified 
-                  ? 'text-orange-500 hover:text-orange-600' 
-                  : 'text-gray-500'
+                currentTab?.modified ? 'text-orange-500 hover:text-orange-600' : 'text-gray-500'
               )}
             />
           </Tooltip>
-          
+
           <Tooltip title="预览模式">
-            <Button
-              type="text"
-              icon={<EyeOutlined />}
-              size="small"
-            />
+            <Button type="text" icon={<EyeOutlined />} size="small" />
           </Tooltip>
-          
+
           <Tooltip title="分屏模式">
-            <Button
-              type="text"
-              icon={<SplitCellsOutlined />}
-              size="small"
-            />
+            <Button type="text" icon={<SplitCellsOutlined />} size="small" />
           </Tooltip>
-          
+
           <Tooltip title="全屏">
-            <Button
-              type="text"
-              icon={<FullscreenOutlined />}
-              size="small"
-            />
+            <Button type="text" icon={<FullscreenOutlined />} size="small" />
           </Tooltip>
-          
+
           <Dropdown
             menu={{
               items: editorMenuItems,
@@ -223,11 +201,7 @@ export default App`,
             }}
             placement="bottomRight"
           >
-            <Button
-              type="text"
-              icon={<MoreOutlined />}
-              size="small"
-            />
+            <Button type="text" icon={<MoreOutlined />} size="small" />
           </Dropdown>
         </Space>
       </div>
@@ -274,7 +248,7 @@ export default App`,
               acceptSuggestionOnEnter: 'on',
               quickSuggestions: true,
             }}
-            onMount={(editor) => {
+            onMount={editor => {
               editorRef.current = editor
             }}
           />

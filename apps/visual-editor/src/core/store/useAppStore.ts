@@ -2,7 +2,14 @@ import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 
 // Define the possible views in the application
-export type AppView = 'home' | 'welcome' | 'workspace' | 'editor' | 'preview' | 'webcontainer'
+export type AppView =
+  | 'home'
+  | 'welcome'
+  | 'projects'
+  | 'workspace'
+  | 'editor'
+  | 'preview'
+  | 'webcontainer'
 
 // Define the application state interface
 interface AppState {

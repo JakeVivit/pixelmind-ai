@@ -1,46 +1,67 @@
 import React from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { Layout } from 'antd'
 import { MainLayout } from '@layouts/MainLayout'
 import { WelcomePage } from '@features/welcome/WelcomePage'
 import { RealWebContainerDemo } from '@features/webcontainer/RealWebContainerDemo'
 import { HomePage } from '@features/home/HomePage'
+import { ProjectsPageNew as ProjectsPage } from '@features/projects/ProjectsPageNew'
 import { WorkspacePage } from '@features/workspace/WorkspacePage'
-import { useAppStore } from '@core/store/useAppStore'
 
 const { Content } = Layout
 
+/**
+ * Main application component with React Router
+ */
 export const App: React.FC = () => {
-  const { currentView } = useAppStore()
-
-  const renderContent = () => {
-    switch (currentView) {
-      case 'home':
-        return <HomePage />
-      case 'welcome':
-        return <WelcomePage />
-      case 'workspace':
-        return <WorkspacePage />
-      case 'editor':
-        // TODO: Implement visual editor
-        return <div>Visual Editor (Coming Soon)</div>
-      case 'preview':
-        // TODO: Implement preview
-        return <div>Preview (Coming Soon)</div>
-      case 'webcontainer':
-        return <RealWebContainerDemo />
-      default:
-        return <HomePage />
-    }
-  }
-
-  // 工作台使用独立布局，其他页面使用主布局
-  if (currentView === 'workspace') {
-    return renderContent()
-  }
-
   return (
-    <MainLayout>
-      <Content style={{ padding: 0, minHeight: '100vh' }}>{renderContent()}</Content>
-    </MainLayout>
+    <Router>
+      <Routes>
+        {/* 首页 - 使用主布局 */}
+        <Route
+          path="/"
+          element={
+            <MainLayout>
+              <Content style={{ padding: 0, minHeight: '100vh' }}>
+                <HomePage />
+              </Content>
+            </MainLayout>
+          }
+        />
+
+        {/* 欢迎页 - 使用主布局 */}
+        <Route
+          path="/welcome"
+          element={
+            <MainLayout>
+              <Content style={{ padding: 0, minHeight: '100vh' }}>
+                <WelcomePage />
+              </Content>
+            </MainLayout>
+          }
+        />
+
+        {/* WebContainer 演示 - 使用主布局 */}
+        <Route
+          path="/webcontainer"
+          element={
+            <MainLayout>
+              <Content style={{ padding: 0, minHeight: '100vh' }}>
+                <RealWebContainerDemo />
+              </Content>
+            </MainLayout>
+          }
+        />
+
+        {/* 项目管理页面 - 独立布局 */}
+        <Route path="/projects" element={<ProjectsPage />} />
+
+        {/* 项目工作台 - 独立布局，带项目ID参数 */}
+        <Route path="/projects/:projectId/workspace" element={<WorkspacePage />} />
+
+        {/* 默认重定向到首页 */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
   )
 }

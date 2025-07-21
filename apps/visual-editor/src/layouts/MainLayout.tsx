@@ -1,4 +1,5 @@
 import React, { ReactNode } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { Layout, Typography, Space, Button, Dropdown, Avatar, Menu } from 'antd'
 import {
   MenuOutlined,
@@ -11,9 +12,9 @@ import {
   CodeOutlined,
   EyeOutlined,
   ThunderboltOutlined,
+  FolderOutlined,
 } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
-import { useAppStore, type AppView } from '@core/store/useAppStore'
 import { ThemeToggle } from '../components/ui/ThemeToggle'
 
 const { Header } = Layout
@@ -24,27 +25,28 @@ interface MainLayoutProps {
 }
 
 export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const { currentView, setCurrentView } = useAppStore()
+  const navigate = useNavigate()
+  const location = useLocation()
 
   // Navigation menu items
   const navigationItems: MenuProps['items'] = [
     {
-      key: 'home',
+      key: '/',
       icon: <HomeOutlined />,
       label: '首页',
     },
     {
-      key: 'workspace',
-      icon: <CodeOutlined />,
-      label: '工作台',
+      key: '/projects',
+      icon: <FolderOutlined />,
+      label: '项目管理',
     },
     {
-      key: 'welcome',
+      key: '/welcome',
       icon: <QuestionCircleOutlined />,
       label: '欢迎页',
     },
     {
-      key: 'webcontainer',
+      key: '/webcontainer',
       icon: <ThunderboltOutlined />,
       label: 'WebContainer 演示',
     },
@@ -99,7 +101,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   ]
 
   const handleNavigationClick: MenuProps['onClick'] = ({ key }) => {
-    setCurrentView(key as AppView)
+    navigate(key)
   }
 
   const handleUserMenuClick: MenuProps['onClick'] = ({ key }) => {
@@ -172,7 +174,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           {/* Navigation Menu */}
           <Menu
             mode="horizontal"
-            selectedKeys={[currentView]}
+            selectedKeys={[location.pathname]}
             items={navigationItems}
             onClick={handleNavigationClick}
             style={{

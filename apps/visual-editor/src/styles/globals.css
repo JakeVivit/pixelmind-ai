@@ -1,3 +1,6 @@
+/* 工作台样式覆盖 */
+@import './workspace-override.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,26 +10,75 @@
   html {
     @apply scroll-smooth;
   }
-  
+
   body {
     @apply font-sans antialiased;
     @apply bg-white dark:bg-gray-950;
     @apply text-gray-900 dark:text-gray-100;
   }
-  
+
+  /* 确保边框样式正确应用 */
+  * {
+    box-sizing: border-box;
+  }
+
+  /* 全局边框修复 - 确保所有边框都能正确显示 */
+  [class*="border-"] {
+    border-style: solid !important;
+  }
+
+  /* 具体边框方向修复 */
+  .border-l {
+    border-left-width: 1px !important;
+    border-left-style: solid !important;
+  }
+
+  .border-r {
+    border-right-width: 1px !important;
+    border-right-style: solid !important;
+  }
+
+  .border-t {
+    border-top-width: 1px !important;
+    border-top-style: solid !important;
+  }
+
+  .border-b {
+    border-bottom-width: 1px !important;
+    border-bottom-style: solid !important;
+  }
+
+  .border {
+    border-width: 1px !important;
+    border-style: solid !important;
+  }
+
+  /* 边框颜色修复 */
+  .border-gray-200 {
+    border-color: rgb(229 231 235) !important;
+  }
+
+  .border-gray-700 {
+    border-color: rgb(55 65 81) !important;
+  }
+
+  .dark .dark\:border-gray-700 {
+    border-color: rgb(55 65 81) !important;
+  }
+
   /* 自定义滚动条 */
   ::-webkit-scrollbar {
     @apply w-2 h-2;
   }
-  
+
   ::-webkit-scrollbar-track {
     @apply bg-gray-100 dark:bg-gray-800;
   }
-  
+
   ::-webkit-scrollbar-thumb {
     @apply bg-gray-300 dark:bg-gray-600 rounded-full;
   }
-  
+
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-400 dark:bg-gray-500;
   }
@@ -39,20 +91,20 @@
     @apply bg-white/80 dark:bg-gray-900/80;
     @apply backdrop-blur-md border border-white/20 dark:border-gray-700/50;
   }
-  
+
   /* 渐变文字 */
   .gradient-text {
     @apply bg-gradient-to-r from-primary-600 to-primary-400;
     @apply bg-clip-text text-transparent;
   }
-  
+
   /* 卡片悬停效果 */
   .card-hover {
     @apply transition-all duration-300 ease-out;
     @apply hover:shadow-lg hover:shadow-primary-500/10;
     @apply hover:-translate-y-1;
   }
-  
+
   /* 按钮基础样式 */
   .btn-primary {
     @apply bg-primary-600 hover:bg-primary-700;
@@ -62,7 +114,7 @@
     @apply shadow-lg shadow-primary-500/25;
     @apply hover:shadow-xl hover:shadow-primary-500/30;
   }
-  
+
   .btn-secondary {
     @apply bg-white dark:bg-gray-800;
     @apply text-gray-900 dark:text-gray-100;
@@ -71,7 +123,7 @@
     @apply transition-all duration-200;
     @apply hover:bg-gray-50 dark:hover:bg-gray-700;
   }
-  
+
   /* 输入框样式 */
   .input-field {
     @apply w-full px-4 py-3 rounded-lg;
@@ -84,6 +136,23 @@
 
 /* 工具类 */
 @layer utilities {
+  /* 语义化文字颜色 */
+  .text-primary {
+    @apply text-gray-900 dark:text-gray-100;
+  }
+
+  .text-secondary {
+    @apply text-gray-700 dark:text-gray-300;
+  }
+
+  .text-muted {
+    @apply text-gray-600 dark:text-gray-400;
+  }
+
+  .text-subtle {
+    @apply text-gray-500 dark:text-gray-500;
+  }
+
   /* 文字省略 */
   .text-ellipsis-2 {
     display: -webkit-box;
@@ -91,27 +160,76 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  
+
   .text-ellipsis-3 {
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  
+
   /* 安全区域 */
   .safe-top {
     padding-top: env(safe-area-inset-top);
   }
-  
+
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
+
+  /* 边框修复工具类 */
+  .border-fix {
+    border-style: solid !important;
+  }
+
+  .border-l-fix {
+    border-left-width: 1px !important;
+    border-left-style: solid !important;
+  }
+
+  .border-r-fix {
+    border-right-width: 1px !important;
+    border-right-style: solid !important;
+  }
+
+  .border-t-fix {
+    border-top-width: 1px !important;
+    border-top-style: solid !important;
+  }
+
+  .border-b-fix {
+    border-bottom-width: 1px !important;
+    border-bottom-style: solid !important;
+  }
 }
 
-/* Ant Design 主题覆盖 */
+/* Ant Design 主题覆盖 - 防止与 Tailwind preflight 冲突 */
 .ant-layout {
   @apply bg-transparent;
+}
+
+/* 重置 Ant Design 组件的默认样式，防止被 Tailwind preflight 覆盖 */
+.ant-btn {
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+}
+
+.ant-input {
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+}
+
+.ant-select-selector {
+  border: 1px solid #d9d9d9 !important;
+  border-radius: 6px !important;
+}
+
+.ant-tree {
+  background: transparent;
+}
+
+.ant-menu {
+  border: none;
 }
 
 .ant-layout-sider {

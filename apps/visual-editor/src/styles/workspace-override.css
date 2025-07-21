@@ -1,0 +1,213 @@
+/* 工作台样式覆盖 - 100% 还原截图样式 */
+
+/* 左侧菜单树形组件样式覆盖 */
+.project-sidebar-tree .ant-tree {
+  background: transparent !important;
+  font-size: 13px !important;
+}
+
+.project-sidebar-tree .ant-tree-list {
+  background: transparent !important;
+}
+
+.project-sidebar-tree .ant-tree-treenode {
+  margin-bottom: 0 !important;
+  padding: 0 !important;
+}
+
+.project-sidebar-tree .ant-tree-node-content-wrapper {
+  padding: 2px 8px !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  transition: background-color 0.15s ease !important;
+  line-height: 20px !important;
+  height: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.project-sidebar-tree .ant-tree-node-content-wrapper:hover {
+  background-color: #f5f5f5 !important;
+}
+
+.project-sidebar-tree .ant-tree-node-selected .ant-tree-node-content-wrapper {
+  background-color: #e6f7ff !important;
+  color: #1890ff !important;
+}
+
+.project-sidebar-tree .ant-tree-title {
+  font-size: 13px !important;
+  color: #333 !important;
+  font-weight: normal !important;
+}
+
+.project-sidebar-tree .ant-tree-node-selected .ant-tree-title {
+  color: #1890ff !important;
+}
+
+.project-sidebar-tree .ant-tree-switcher {
+  width: 16px !important;
+  height: 16px !important;
+  line-height: 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-right: 4px !important;
+}
+
+.project-sidebar-tree .ant-tree-iconEle {
+  width: 16px !important;
+  height: 16px !important;
+  line-height: 16px !important;
+  margin-right: 4px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.project-sidebar-tree .ant-tree-indent-unit {
+  width: 20px !important;
+}
+
+/* 移除默认的展开/折叠图标样式 */
+.project-sidebar-tree .ant-tree-switcher-icon {
+  font-size: 10px !important;
+  color: #999 !important;
+}
+
+/* AI助手输入框样式 */
+.ai-assistant-input .ant-input {
+  border-radius: 8px !important;
+  border: 1px solid #d9d9d9 !important;
+  padding: 8px 12px !important;
+  font-size: 14px !important;
+}
+
+.ai-assistant-input .ant-input:focus,
+.ai-assistant-input .ant-input-focused {
+  border-color: #9333ea !important;
+  box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.1) !important;
+}
+
+/* 按钮样式覆盖 */
+.workspace-header .ant-btn {
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.workspace-header .ant-btn:hover {
+  background-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 面包屑样式 */
+.workspace-header .ant-breadcrumb {
+  font-size: 14px !important;
+}
+
+.workspace-header .ant-breadcrumb-link {
+  color: #666 !important;
+}
+
+/* 下拉菜单样式 */
+.ant-dropdown-menu {
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid #e8e8e8 !important;
+}
+
+.ant-dropdown-menu-item {
+  padding: 8px 12px !important;
+  font-size: 14px !important;
+}
+
+.ant-dropdown-menu-item:hover {
+  background-color: #f5f5f5 !important;
+}
+
+/* 选择器样式 */
+.preview-panel .ant-select {
+  border-radius: 6px !important;
+}
+
+.preview-panel .ant-select-selector {
+  border: 1px solid #d9d9d9 !important;
+  border-radius: 6px !important;
+  padding: 0 8px !important;
+  height: 28px !important;
+}
+
+.preview-panel .ant-select-selection-item {
+  line-height: 26px !important;
+  font-size: 13px !important;
+}
+
+/* 工具提示样式 */
+.ant-tooltip {
+  font-size: 12px !important;
+}
+
+.ant-tooltip-inner {
+  border-radius: 6px !important;
+  padding: 6px 8px !important;
+}
+
+/* 头像样式 */
+.ai-assistant .ant-avatar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* 输入框组样式 */
+.ai-input-group .ant-input {
+  border-radius: 8px !important;
+  resize: none !important;
+}
+
+.ai-input-group .ant-btn {
+  border-radius: 8px !important;
+  height: auto !important;
+  min-height: 32px !important;
+}
+
+/* 消息气泡样式 */
+.message-bubble {
+  max-width: 80%;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+/* 滚动条样式 */
+.workspace-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.workspace-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.workspace-scrollbar::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.workspace-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .project-sidebar-tree .ant-tree-title {
+    font-size: 12px !important;
+  }
+  
+  .workspace-header .ant-breadcrumb {
+    font-size: 13px !important;
+  }
+}

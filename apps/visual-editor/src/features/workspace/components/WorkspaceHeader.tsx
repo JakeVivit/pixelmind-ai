@@ -1,18 +1,19 @@
 import React from 'react'
 import { Button, Space, Dropdown, Typography, Breadcrumb, Tooltip } from 'antd'
 import {
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-  RobotOutlined,
-  ConsoleSqlOutlined,
-  PlayCircleOutlined,
-  SaveOutlined,
-  ShareAltOutlined,
-  SettingOutlined,
-  FolderOpenOutlined,
-  HomeOutlined,
-  CodeOutlined,
-} from '@ant-design/icons'
+  Menu,
+  PanelLeftOpen,
+  Bot,
+  Play,
+  Save,
+  Share,
+  Settings,
+  FolderOpen,
+  Home,
+  MoreHorizontal,
+  Eye,
+  PanelLeft,
+} from 'lucide-react'
 import type { MenuProps } from 'antd'
 import { cn } from '../../../utils/cn'
 import { useAppStore } from '../../../core/store/useAppStore'
@@ -22,23 +23,19 @@ const { Text } = Typography
 interface WorkspaceHeaderProps {
   onToggleSidebar: () => void
   onToggleAI: () => void
-  onToggleTerminal: () => void
   sidebarCollapsed: boolean
   aiPanelVisible: boolean
-  terminalVisible: boolean
 }
 
 /**
  * 工作台头部组件
- * 包含项目信息、工具栏和面板切换按钮
+ * 简化的操作栏，包含项目信息和面板切换
  */
 export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
   onToggleSidebar,
   onToggleAI,
-  onToggleTerminal,
   sidebarCollapsed,
   aiPanelVisible,
-  terminalVisible,
 }) => {
   const { setCurrentView } = useAppStore()
 
@@ -46,20 +43,25 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
   const projectMenuItems: MenuProps['items'] = [
     {
       key: 'save',
-      icon: <SaveOutlined />,
+      icon: <Save className="w-4 h-4" />,
       label: '保存项目',
     },
     {
       key: 'export',
-      icon: <ShareAltOutlined />,
-      label: '导出代码',
+      icon: <Share className="w-4 h-4" />,
+      label: '导出项目',
+    },
+    {
+      key: 'preview',
+      icon: <Eye className="w-4 h-4" />,
+      label: '预览项目',
     },
     {
       type: 'divider',
     },
     {
       key: 'settings',
-      icon: <SettingOutlined />,
+      icon: <Settings className="w-4 h-4" />,
       label: '项目设置',
     },
   ]
@@ -70,7 +72,10 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
         console.log('保存项目')
         break
       case 'export':
-        console.log('导出代码')
+        console.log('导出项目')
+        break
+      case 'preview':
+        console.log('预览项目')
         break
       case 'settings':
         console.log('项目设置')
@@ -78,8 +83,8 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
     }
   }
 
-  const handleRunProject = () => {
-    console.log('运行项目')
+  const handlePublishProject = () => {
+    console.log('发布项目')
   }
 
   return (
@@ -96,7 +101,13 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
         {/* 侧边栏切换 */}
         <Button
           type="text"
-          icon={sidebarCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+          icon={
+            sidebarCollapsed ? (
+              <PanelLeftOpen className="w-4 h-4" />
+            ) : (
+              <PanelLeft className="w-4 h-4" />
+            )
+          }
           onClick={onToggleSidebar}
           className={cn(
             'w-8 h-8 p-0',
@@ -112,7 +123,7 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
               title: (
                 <Button
                   type="link"
-                  icon={<HomeOutlined />}
+                  icon={<Home className="w-4 h-4" />}
                   onClick={() => setCurrentView('home')}
                   className="p-0 h-auto text-gray-500 dark:text-gray-400"
                 >
@@ -123,8 +134,8 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
             {
               title: (
                 <div className="flex items-center gap-2">
-                  <FolderOpenOutlined className="text-primary-500" />
-                  <Text className="text-gray-900 dark:text-gray-100 font-medium">我的项目</Text>
+                  <FolderOpen className="w-4 h-4 text-primary-500" />
+                  <Text className="text-gray-900 dark:text-gray-100 font-medium">电商网站项目</Text>
                 </div>
               ),
             },
@@ -132,19 +143,22 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
         />
       </div>
 
-      {/* 中间 - 项目操作 */}
-      <div className="flex items-center gap-2">
-        <Button
-          type="primary"
-          icon={<PlayCircleOutlined />}
-          onClick={handleRunProject}
-          className={cn(
-            'bg-primary-600 hover:bg-primary-700',
-            'border-primary-600 hover:border-primary-700'
-          )}
-        >
-          运行项目
-        </Button>
+      {/* 右侧 - 项目操作和面板切换 */}
+      <div className="flex items-center gap-1">
+        {/* 项目操作图标 */}
+        <Tooltip title="发布项目">
+          <Button
+            type="text"
+            icon={<Play className="w-4 h-4" />}
+            onClick={handlePublishProject}
+            className={cn(
+              'w-8 h-8 p-0',
+              'text-gray-600 dark:text-gray-300',
+              'hover:text-blue-600 dark:hover:text-blue-400',
+              'hover:bg-blue-50 dark:hover:bg-blue-900/20'
+            )}
+          />
+        </Tooltip>
 
         <Dropdown
           menu={{
@@ -153,22 +167,37 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
           }}
           placement="bottomRight"
         >
-          <Button icon={<SettingOutlined />}>项目操作</Button>
+          <Tooltip title="项目操作">
+            <Button
+              type="text"
+              icon={<MoreHorizontal className="w-4 h-4" />}
+              className={cn(
+                'w-8 h-8 p-0',
+                'text-gray-600 dark:text-gray-300',
+                'hover:bg-gray-100 dark:hover:bg-gray-800'
+              )}
+            />
+          </Tooltip>
         </Dropdown>
-      </div>
 
-      {/* 右侧 - 面板切换 */}
-      <div className="flex items-center gap-1">
-        <Tooltip title={terminalVisible ? '隐藏终端' : '显示终端'}>
+        {/* 分隔线 */}
+        <div className="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-1" />
+
+        {/* 面板切换 */}
+        <Tooltip title={sidebarCollapsed ? '显示资源面板' : '隐藏资源面板'}>
           <Button
             type="text"
-            icon={<ConsoleSqlOutlined />}
-            onClick={onToggleTerminal}
+            icon={
+              sidebarCollapsed ? (
+                <PanelLeftOpen className="w-4 h-4" />
+              ) : (
+                <Menu className="w-4 h-4" />
+              )
+            }
+            onClick={onToggleSidebar}
             className={cn(
               'w-8 h-8 p-0',
-              terminalVisible
-                ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/50'
-                : 'text-gray-600 dark:text-gray-300',
+              'text-gray-600 dark:text-gray-300',
               'hover:bg-gray-100 dark:hover:bg-gray-800'
             )}
           />
@@ -177,7 +206,7 @@ export const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
         <Tooltip title={aiPanelVisible ? '隐藏 AI 助手' : '显示 AI 助手'}>
           <Button
             type="text"
-            icon={<RobotOutlined />}
+            icon={<Bot className="w-4 h-4" />}
             onClick={onToggleAI}
             className={cn(
               'w-8 h-8 p-0',
