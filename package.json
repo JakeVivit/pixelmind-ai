@@ -4,6 +4,10 @@
   "description": "Visual AI Frontend Development Environment - Browser-based tool for generating React/Vue components through drag-and-drop interactions and natural language descriptions",
   "private": true,
   "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "pnpm --filter visual-editor dev",
     "build": "pnpm --filter visual-editor build",
@@ -11,7 +15,10 @@
     "lint": "pnpm --filter visual-editor lint",
     "type-check": "pnpm --filter visual-editor type-check",
     "clean": "pnpm -r clean",
-    "install:all": "pnpm install"
+    "install:all": "pnpm install",
+    "build:packages": "pnpm --filter './packages/*' build",
+    "dev:packages": "pnpm --filter './packages/*' dev",
+    "test:packages": "pnpm --filter './packages/*' test"
   },
   "keywords": [
     "ai",

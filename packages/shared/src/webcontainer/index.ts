@@ -115,6 +115,40 @@ import { ConfigProvider } from 'antd'
 import App from './App.tsx'
 import './index.css'
 
+// PixelMind 元素选择器支持
+if (typeof window !== 'undefined') {
+  console.log('PixelMind: 设置消息监听器')
+
+  window.addEventListener('message', function(event) {
+    console.log('PixelMind: 收到消息', event.data?.type)
+
+    if (event.data?.type === 'EVAL' || event.data?.type === 'INJECT_SCRIPT' || event.data?.type === 'EXECUTE_SCRIPT') {
+      try {
+        console.log('PixelMind: 执行脚本', event.data.script?.substring(0, 100) + '...')
+        eval(event.data.script)
+      } catch (error) {
+        console.error('PixelMind: 脚本执行失败', error)
+      }
+    }
+
+    if (event.data?.type === 'EVAL_SIMPLE') {
+      try {
+        console.log('PixelMind: 执行简单脚本')
+        eval(event.data.script)
+      } catch (error) {
+        console.error('PixelMind: 简单脚本执行失败', error)
+      }
+    }
+
+    if (event.data?.type === 'TEST_PING') {
+      console.log('PixelMind: 收到 PING 测试:', event.data.data)
+      window.parent.postMessage({ type: 'PONG', data: 'Hello from WebContainer' }, '*')
+    }
+  })
+
+  console.log('PixelMind: 消息监听器已设置')
+}
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ConfigProvider>

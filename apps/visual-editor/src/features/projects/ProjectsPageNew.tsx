@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '../../utils/cn'
 import { ProjectSidebar } from './components/ProjectSidebar'
@@ -6,19 +6,12 @@ import { ProjectCard } from './components/ProjectCard'
 import { TemplateCard } from './components/TemplateCard'
 import { CreateProjectPage } from './components/CreateProjectPage'
 import { AntdThemeTest } from './components/AntdThemeTest'
+import { ProjectList } from './components/ProjectList'
+import { ProjectLocationSelector } from './components/ProjectLocationSelector'
 import { ThemeToggle } from '../../components/ThemeToggle'
-import { Search, Plus } from 'lucide-react'
-
-interface Project {
-  id: string
-  name: string
-  description: string
-  template: string
-  lastModified: string
-  size: string
-  language: string
-  isPrivate?: boolean
-}
+import { ProjectManager } from './services/ProjectManager'
+import { Search, Plus, Folder, Settings } from 'lucide-react'
+import type { Project } from './types/project'
 
 interface Template {
   id: string
@@ -33,9 +26,77 @@ export const ProjectsPageNew: React.FC = () => {
   const navigate = useNavigate()
   const [activeMenu, setActiveMenu] = useState('my-projects')
   const [searchValue, setSearchValue] = useState('')
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
+  const [showDirectorySetup, setShowDirectorySetup] = useState(false)
+  const [currentDirectoryPath, setCurrentDirectoryPath] = useState<string | null>(null)
 
-  // 模拟项目数据
-  const projects: Project[] = [
+  // 检查目录状态
+  useEffect(() => {
+    const projectManager = ProjectManager.getInstance()
+    const path = projectManager.getBaseDirectoryPath()
+    setCurrentDirectoryPath(path)
+
+    // 只有当完全没有保存的目录路径时，才显示目录设置界面
+    // 如果有路径但没有权限，让 ProjectList 组件处理并显示提示
+    if (!path) {
+      setShowDirectorySetup(true)
+    } else {
+      setShowDirectorySetup(false)
+    }
+  }, [refreshTrigger])
+
+  // 处理项目创建成功
+  const handleProjectCreated = (project: Project) => {
+    console.log('项目创建成功:', project)
+    setActiveMenu('my-projects')
+    setRefreshTrigger(prev => prev + 1) // 触发项目列表刷新
+  }
+
+  // 处理项目点击
+  const handleProjectClick = (project: Project) => {
+    console.log('打开项目:', project)
+    // 导航到工作区页面
+    navigate(`/workspace/${project.id}`)
+  }
+
+  // 处理目录选择
+  const handleDirectorySelected = (dirHandle: FileSystemDirectoryHandle, path: string) => {
+    console.log('目录已选择:', path)
+    setCurrentDirectoryPath(path)
+    setShowDirectorySetup(false)
+    setRefreshTrigger(prev => prev + 1) // 触发项目列表刷新
+  }
+
+  // 重新设置目录
+  const handleResetDirectory = async () => {
+    try {
+      const projectManager = ProjectManager.getInstance()
+
+      // 如果有保存的路径，尝试重新获取权限而不是重置
+      if (projectManager.getBaseDirectoryPath()) {
+        console.log('重新获取目录访问权限...')
+        const result = await projectManager.setBaseDirectory(true) // 强制重新选择
+        if (result.success && result.path) {
+          setCurrentDirectoryPath(result.path)
+          setRefreshTrigger(prev => prev + 1)
+          return
+        }
+      }
+
+      // 如果重新获取失败或没有保存的路径，则完全重置
+      projectManager.reset()
+      localStorage.removeItem('pixelmind-base-directory')
+      setCurrentDirectoryPath(null)
+      setShowDirectorySetup(true)
+      setRefreshTrigger(prev => prev + 1)
+    } catch (error) {
+      console.error('重新设置目录失败:', error)
+      alert('重新设置目录失败，请重试')
+    }
+  }
+
+  // 模拟项目数据（保留用于模板市场等其他功能）
+  const mockProjects = [
     {
       id: '1',
       name: 'redesigned-potato',
@@ -107,15 +168,7 @@ export const ProjectsPageNew: React.FC = () => {
     },
   ]
 
-  const handleProjectClick = (projectId: string) => {
-    navigate(`/workspace/${projectId}`)
-  }
-
-  const handleCreateProject = (projectData: any) => {
-    console.log('Creating project:', projectData)
-    // 这里可以添加创建项目的逻辑
-    setActiveMenu('my-projects')
-  }
+  // 这个函数已经被 handleProjectCreated 替代
 
   const handleUseTemplate = (templateId: string) => {
     console.log('Using template:', templateId)
@@ -128,7 +181,7 @@ export const ProjectsPageNew: React.FC = () => {
         return (
           <CreateProjectPage
             onBack={() => setActiveMenu('my-projects')}
-            onCreate={handleCreateProject}
+            onCreate={handleProjectCreated}
           />
         )
 
@@ -236,6 +289,19 @@ export const ProjectsPageNew: React.FC = () => {
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold">我的项目列表</h2>
                   <div className="flex items-center gap-3">
+                    {currentDirectoryPath && (
+                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                        <Folder className="w-4 h-4" />
+                        <span className="max-w-xs truncate">{currentDirectoryPath}</span>
+                        <button
+                          onClick={handleResetDirectory}
+                          className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+                          title="重新选择目录"
+                        >
+                          <Settings className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
                     <ThemeToggle />
                     <button
                       onClick={() => setActiveMenu('create-project')}
@@ -247,15 +313,27 @@ export const ProjectsPageNew: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  {projects.map(project => (
-                    <ProjectCard
-                      key={project.id}
-                      project={project}
-                      onClick={() => handleProjectClick(project.id)}
+                {showDirectorySetup ? (
+                  <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                    <div className="text-center mb-6">
+                      <Folder className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">选择项目存储目录</h3>
+                      <p className="text-gray-600 dark:text-gray-400">
+                        请选择一个文件夹来存储你的项目文件
+                      </p>
+                    </div>
+                    <ProjectLocationSelector
+                      onLocationSelected={handleDirectorySelected}
+                      selectedLocation={currentDirectoryPath}
+                      allowReselect={true}
                     />
-                  ))}
-                </div>
+                  </div>
+                ) : (
+                  <ProjectList
+                    onProjectClick={handleProjectClick}
+                    refreshTrigger={refreshTrigger}
+                  />
+                )}
               </div>
             </div>
           </div>

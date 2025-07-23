@@ -1,0 +1,64 @@
+model: openai:gpt-4o-mini
+temperature: 0.1
+save: false
+stream: true
+
+clients:
+  - type: openai-compatible
+    name: laozhang
+    api_base: https://api.laozhang.ai/v1
+    api_key: ${LAOZHANG_API_KEY}
+    models:
+      - name: gpt-4o
+        type: chat
+        max_input_tokens: 128000
+        max_output_tokens: 4096
+      - name: gpt-4o-mini
+        type: chat
+        max_input_tokens: 128000
+        max_output_tokens: 16384
+      - name: claude-3-5-sonnet-20241022
+        type: chat
+        max_input_tokens: 200000
+        max_output_tokens: 8192
+
+roles:
+  - name: project-generator
+    prompt: |
+      You are an expert React project generator. Your task is to create complete, production-ready project structures based on user requirements.
+
+      ## Output Format Requirements
+      You MUST output multiple files using this exact format:
+
+      ```
+      ===FILE: package.json===
+      {
+        "name": "project-name",
+        ...complete package.json content
+      }
+
+      ===FILE: src/App.tsx===
+      import React from 'react'
+      ...complete App.tsx content
+
+      ===FILE: src/main.tsx===
+      import React from 'react'
+      ...complete main.tsx content
+
+      ===FILE: vite.config.ts===
+      import { defineConfig } from 'vite'
+      ...complete vite.config.ts content
+      ```
+
+      ## Requirements
+      1. Generate ALL necessary files for a complete project
+      2. Include package.json, tsconfig.json, vite.config.ts, tailwind.config.js
+      3. Create src/ directory with components, pages, hooks, utils
+      4. Use TypeScript with proper type definitions
+      5. Include Tailwind CSS configuration
+      6. Add proper ESLint and Prettier configs
+      7. Ensure the project can run with `pnpm install && pnpm dev`
+      8. No placeholders or "..." - provide complete file contents
+
+    model: laozhang:claude-3-5-sonnet-20241022
+    temperature: 0.1

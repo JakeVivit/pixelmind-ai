@@ -1,58 +1,175 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { ArrowLeft, Loader2 } from 'lucide-react'
 import { cn } from '../../../utils/cn'
-import { ArrowLeft, Folder, Globe, Lock } from 'lucide-react'
+import { ProjectForm } from './ProjectForm'
+import { UILibrarySelector } from './UILibrarySelector'
+import { ProjectLocationSelector } from './ProjectLocationSelector'
+import { AIModelSelector } from './AIModelSelector'
+import { ProjectManager } from '../services/ProjectManager'
+import { ProjectValidator } from '../utils/validation'
+import type { CreateProjectData, Project } from '../types/project'
 
 interface CreateProjectPageProps {
   onBack: () => void
-  onCreate: (projectData: any) => void
+  onCreate: (project: Project) => void
 }
 
 export const CreateProjectPage: React.FC<CreateProjectPageProps> = ({ onBack, onCreate }) => {
-  const [projectName, setProjectName] = useState('')
-  const [description, setDescription] = useState('')
-  const [isPrivate, setIsPrivate] = useState(true)
-  const [selectedTemplate, setSelectedTemplate] = useState('blank')
+  const [projectData, setProjectData] = useState<CreateProjectData>({
+    name: '',
+    description: '',
+    uiLibrary: '',
+    aiModel: 'gpt-4o-mini', // 默认使用性价比最高的模型
+  })
+  const [selectedLocation, setSelectedLocation] = useState<FileSystemDirectoryHandle | null>(null)
+  const [selectedLocationPath, setSelectedLocationPath] = useState<string | null>(null)
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [isCreating, setIsCreating] = useState(false)
 
-  const templates = [
-    {
-      id: 'blank',
-      name: 'Blank',
-      description: 'Start with a blank canvas or import any packages you need.',
-      icon: '📄',
-    },
-    {
-      id: 'react',
-      name: 'React',
-      description:
-        'A popular JavaScript library for building user interfaces based on UI components.',
-      icon: '⚛️',
-    },
-    {
-      id: 'vue',
-      name: 'Vue',
-      description: 'A progressive framework for building user interfaces.',
-      icon: '💚',
-    },
-    {
-      id: 'next',
-      name: 'Next.js',
-      description: 'A React framework for production with hybrid static & server rendering.',
-      icon: '▲',
-    },
-  ]
+  const [creationProgress, setCreationProgress] = useState<string[]>([])
+  const [currentStep, setCurrentStep] = useState<string>('')
 
-  const handleCreate = () => {
-    if (!projectName.trim()) return
+  // 检查是否已有保存的目录路径
+  useEffect(() => {
+    const projectManager = ProjectManager.getInstance()
+    const savedPath = projectManager.getBaseDirectoryPath()
+    const savedHandle = projectManager.getBaseDirectoryHandle()
 
-    const projectData = {
-      name: projectName,
-      description,
-      template: selectedTemplate,
-      isPrivate,
-      createdAt: new Date().toISOString(),
+    if (savedPath) {
+      setSelectedLocationPath(savedPath)
+      if (savedHandle) {
+        setSelectedLocation(savedHandle)
+      }
+      console.log('已恢复保存的目录路径:', savedPath)
+    }
+  }, [])
+
+  const handleLocationSelected = (dirHandle: FileSystemDirectoryHandle, path: string) => {
+    setSelectedLocation(dirHandle)
+    setSelectedLocationPath(path)
+    setErrors(prev => ({ ...prev, location: '' }))
+  }
+
+  // 添加进度日志
+  const addProgressLog = (message: string) => {
+    const timestamp = new Date().toLocaleTimeString()
+    const logMessage = `[${timestamp}] ${message}`
+    setCreationProgress(prev => [...prev, logMessage])
+    setCurrentStep(message)
+    console.log(logMessage)
+  }
+
+  // 清除进度日志
+  const clearProgress = () => {
+    setCreationProgress([])
+    setCurrentStep('')
+  }
+
+  const handleLibrarySelect = (libraryId: string) => {
+    setProjectData(prev => ({ ...prev, uiLibrary: libraryId }))
+    setErrors(prev => ({ ...prev, uiLibrary: '' }))
+  }
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {}
+
+    // 验证项目数据
+    const dataValidation = ProjectValidator.validateCreateProjectData(projectData)
+    if (!dataValidation.isValid) {
+      if (projectData.name === '') newErrors.name = '项目名称不能为空'
+      else if (!ProjectValidator.validateProjectName(projectData.name).isValid) {
+        newErrors.name = ProjectValidator.validateProjectName(projectData.name).error!
+      }
+
+      if (projectData.description === '') newErrors.description = '项目描述不能为空'
+      else if (!ProjectValidator.validateDescription(projectData.description).isValid) {
+        newErrors.description = ProjectValidator.validateDescription(projectData.description).error!
+      }
+
+      if (projectData.uiLibrary === '') newErrors.uiLibrary = '请选择一个 UI 组件库'
     }
 
-    onCreate(projectData)
+    // 验证存储位置
+    if (!selectedLocation) {
+      newErrors.location = '请选择项目存储位置'
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleCreateProject = async () => {
+    if (!validateForm()) return
+
+    // 不再需要检查 Gemini API 配置，直接使用 ChatAI
+    setIsCreating(true)
+    clearProgress()
+
+    try {
+      addProgressLog('开始创建项目...')
+      const projectManager = ProjectManager.getInstance()
+
+      // 检查是否有基础目录路径
+      addProgressLog('检查项目配置...')
+      console.log('创建项目时的状态检查:')
+      console.log('- selectedLocationPath:', selectedLocationPath)
+      console.log('- selectedLocation:', selectedLocation)
+      console.log('- projectData:', projectData)
+
+      if (!selectedLocationPath) {
+        console.error('selectedLocationPath 为空，无法创建项目')
+        addProgressLog('❌ 错误: 未选择项目存储目录')
+        alert('请先选择项目存储目录')
+        setIsCreating(false)
+        return
+      }
+
+      // 如果没有文件系统访问权限，尝试重新获取
+      if (!projectManager.hasFileSystemAccess()) {
+        addProgressLog('检查文件系统访问权限...')
+        try {
+          const result = await projectManager.setBaseDirectory(true) // 强制重新选择
+          if (!result.success) {
+            addProgressLog('❌ 错误: 需要重新授权访问目录权限')
+            alert('需要重新授权访问目录权限，请重新选择目录')
+            setIsCreating(false)
+            return
+          }
+          addProgressLog('✅ 文件系统访问权限已获取')
+        } catch (error) {
+          console.error('重新获取目录权限失败:', error)
+          addProgressLog('❌ 错误: 无法访问目录')
+          alert('无法访问目录，请重新选择项目存储位置')
+          setIsCreating(false)
+          return
+        }
+      }
+
+      addProgressLog('🚀 开始使用 AI 生成项目代码...')
+      const project = await projectManager.createProject(projectData)
+
+      addProgressLog('✅ 项目创建成功!')
+      console.log('项目创建成功:', project)
+      alert(
+        `项目 "${project.name}" 创建成功！\n\n项目已保存到本地，并通过 AI 生成了完整的项目结构。`
+      )
+
+      // 调用回调函数，通常会跳转到项目列表页面
+      onCreate(project)
+    } catch (error) {
+      console.error('创建项目失败:', error)
+      const errorMessage = error instanceof Error ? error.message : '未知错误'
+      addProgressLog(`❌ 创建失败: ${errorMessage}`)
+
+      // 检查是否是余额不足错误
+      if (errorMessage.includes('insufficient_user_quota') || errorMessage.includes('余额不足')) {
+        alert(`创建项目失败: 试用版已经结束，请联系管理员充值\n\n详细错误: ${errorMessage}`)
+      } else {
+        alert(`创建项目失败: ${errorMessage}`)
+      }
+    } finally {
+      setIsCreating(false)
+    }
   }
 
   return (
@@ -62,146 +179,122 @@ export const CreateProjectPage: React.FC<CreateProjectPageProps> = ({ onBack, on
         <div className="flex items-center gap-4">
           <button
             onClick={onBack}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            disabled={isCreating}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-50"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
             <h1 className="text-2xl font-bold">创建新项目</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">选择模板并配置你的新项目</p>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">配置你的 React + Vite 项目</p>
           </div>
         </div>
       </div>
 
-      <div className="p-6 max-w-4xl mx-auto">
+      <div className="p-6 max-w-4xl mx-auto space-y-8">
         {/* 项目基本信息 */}
-        <div className="mb-8">
-          <h2 className="text-lg font-semibold mb-4">项目信息</h2>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                项目名称 *
-              </label>
-              <input
-                type="text"
-                value={projectName}
-                onChange={e => setProjectName(e.target.value)}
-                placeholder="输入项目名称"
-                className={cn(
-                  'w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg',
-                  'text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400',
-                  'focus:border-blue-500 focus:ring-1 focus:ring-blue-500',
-                  'transition-colors duration-200'
-                )}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">项目描述</label>
-              <textarea
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-                placeholder="描述你的项目..."
-                rows={3}
-                className={cn(
-                  'w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg',
-                  'text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none',
-                  'focus:border-blue-500 focus:ring-1 focus:ring-blue-500',
-                  'transition-colors duration-200'
-                )}
-              />
-            </div>
-
-            {/* 可见性设置 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                项目可见性
-              </label>
-              <div className="space-y-2">
-                <label className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors">
-                  <input
-                    type="radio"
-                    name="visibility"
-                    checked={isPrivate}
-                    onChange={() => setIsPrivate(true)}
-                    className="text-blue-500"
-                  />
-                  <Lock className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                  <div>
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">私有</div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400">
-                      只有你可以访问此项目
-                    </div>
-                  </div>
-                </label>
-                <label className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors">
-                  <input
-                    type="radio"
-                    name="visibility"
-                    checked={!isPrivate}
-                    onChange={() => setIsPrivate(false)}
-                    className="text-blue-500"
-                  />
-                  <Globe className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                  <div>
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">公开</div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400">
-                      任何人都可以查看此项目
-                    </div>
-                  </div>
-                </label>
-              </div>
-            </div>
-          </div>
+        <div>
+          <h2 className="text-lg font-semibold mb-6">项目信息</h2>
+          <ProjectForm projectData={projectData} onDataChange={setProjectData} errors={errors} />
         </div>
 
-        {/* 选择模板 */}
-        <div className="mb-8">
-          <h2 className="text-lg font-semibold mb-4">选择模板</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {templates.map(template => (
-              <div
-                key={template.id}
-                onClick={() => setSelectedTemplate(template.id)}
-                className={cn(
-                  'p-4 border rounded-lg cursor-pointer transition-all duration-200',
-                  selectedTemplate === template.id
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10'
-                    : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-gray-400 dark:hover:border-gray-500'
-                )}
-              >
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="text-2xl">{template.icon}</span>
-                  <h3 className="font-medium text-gray-900 dark:text-white">{template.name}</h3>
-                </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{template.description}</p>
-              </div>
-            ))}
-          </div>
+        {/* UI 组件库选择 */}
+        <div>
+          <UILibrarySelector
+            selectedLibrary={projectData.uiLibrary}
+            onLibrarySelect={handleLibrarySelect}
+            error={errors.uiLibrary}
+          />
         </div>
 
+        {/* AI 模型选择 */}
+        <div>
+          <AIModelSelector
+            selectedModel={projectData.aiModel || 'gpt-4o-mini'}
+            onModelChange={modelId => setProjectData(prev => ({ ...prev, aiModel: modelId }))}
+          />
+        </div>
+
+        {/* 项目存储位置 */}
+        <div>
+          <ProjectLocationSelector
+            onLocationSelected={handleLocationSelected}
+            selectedLocation={selectedLocationPath}
+            error={errors.location}
+          />
+        </div>
         {/* 创建按钮 */}
-        <div className="flex justify-end gap-4">
+        <div className="flex justify-end gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
           <button
             onClick={onBack}
-            className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            disabled={isCreating}
+            className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
           >
             取消
           </button>
           <button
-            onClick={handleCreate}
-            disabled={!projectName.trim()}
+            onClick={handleCreateProject}
+            disabled={
+              isCreating ||
+              !projectData.name ||
+              !projectData.description ||
+              !projectData.uiLibrary ||
+              !selectedLocationPath
+            }
             className={cn(
-              'px-6 py-3 rounded-lg font-medium transition-colors',
-              projectName.trim()
-                ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                : 'bg-gray-700 text-gray-400 cursor-not-allowed'
+              'px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2',
+              isCreating ||
+                !projectData.name ||
+                !projectData.description ||
+                !projectData.uiLibrary ||
+                !selectedLocationPath
+                ? 'bg-gray-400 dark:bg-gray-600 text-gray-200 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
             )}
           >
-            创建项目
+            {isCreating && <Loader2 className="w-4 h-4 animate-spin" />}
+            {isCreating ? '创建中...' : '创建项目'}
           </button>
         </div>
       </div>
+
+      {/* 创建进度显示 */}
+      {isCreating && creationProgress.length > 0 && (
+        <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+            <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+            创建进度
+          </h3>
+
+          {/* 当前步骤 */}
+          {currentStep && (
+            <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <div className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                当前步骤: {currentStep}
+              </div>
+            </div>
+          )}
+
+          {/* 进度日志 */}
+          <div className="bg-gray-900 dark:bg-gray-950 rounded-lg p-3 max-h-40 overflow-y-auto">
+            <div className="font-mono text-sm space-y-1">
+              {creationProgress.map((log, index) => (
+                <div
+                  key={index}
+                  className={cn(
+                    'text-gray-300',
+                    log.includes('❌') && 'text-red-400',
+                    log.includes('✅') && 'text-green-400',
+                    log.includes('🚀') && 'text-blue-400'
+                  )}
+                >
+                  {log}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

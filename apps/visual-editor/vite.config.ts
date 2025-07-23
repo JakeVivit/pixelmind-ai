@@ -1,10 +1,25 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
+import { aichatPlugin } from './vite-aichat-plugin.js'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    nodePolyfills({
+      // Enable polyfills for specific globals and modules
+      globals: {
+        Buffer: true,
+        global: true,
+        process: true,
+      },
+      // Enable polyfills for specific Node.js modules
+      protocolImports: true,
+    }),
+    aichatPlugin(), // 添加 AIChat API 插件
+  ],
 
   // Path resolution
   resolve: {
@@ -31,6 +46,9 @@ export default defineConfig({
       'Cross-Origin-Embedder-Policy': 'require-corp',
       'Cross-Origin-Opener-Policy': 'same-origin',
     },
+    // 添加 AIChat API 中间件
+    middlewareMode: false,
+    proxy: {},
   },
 
   // Build configuration
@@ -74,9 +92,17 @@ export default defineConfig({
     noExternal: ['@pixelmind/shared', '@pixelmind/prompt-engine'],
   },
 
-  // Define global constants
+  // Define global constants and polyfills for WebContainer
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version || '0.1.0'),
     __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+    // WebContainer polyfills
+    global: 'globalThis',
+    process: JSON.stringify({
+      env: {},
+      version: '18.0.0',
+      platform: 'browser',
+      nextTick: 'setTimeout',
+    }),
   },
 })

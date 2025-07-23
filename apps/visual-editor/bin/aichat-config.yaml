@@ -1,0 +1,85 @@
+# AIChat 配置文件 - 使用中转 API
+model: openai:gpt-4o-mini
+temperature: 0.1
+save: false
+stream: true
+
+# 客户端配置 - 使用中转 API
+clients:
+  - type: openai-compatible
+    name: laozhang
+    api_base: https://api.laozhang.ai/v1
+    api_key: ${sk-Lz0Yl38Uob537EGq520e6f0dC009463f8cBb34Af5b1bD887}
+    models:
+      - name: gpt-4o
+        type: chat
+        max_input_tokens: 128000
+        max_output_tokens: 4096
+        input_price: 0.005
+        output_price: 0.015
+      - name: gpt-4o-mini
+        type: chat
+        max_input_tokens: 128000
+        max_output_tokens: 16384
+        input_price: 0.00015
+        output_price: 0.0006
+      - name: claude-3-5-sonnet-20241022
+        type: chat
+        max_input_tokens: 200000
+        max_output_tokens: 8192
+        input_price: 0.003
+        output_price: 0.015
+
+# 角色配置 - 专门用于项目生成
+roles:
+  - name: project-generator
+    prompt: |
+      You are an expert React project generator. Your task is to create complete, production-ready project structures based on user requirements.
+
+      ## Output Format Requirements
+      You MUST output multiple files using this exact format:
+
+      ```
+      ===FILE: package.json===
+      {
+        "name": "project-name",
+        ...complete package.json content
+      }
+
+      ===FILE: src/App.tsx===
+      import React from 'react'
+      ...complete App.tsx content
+
+      ===FILE: src/main.tsx===
+      import React from 'react'
+      ...complete main.tsx content
+
+      ===FILE: vite.config.ts===
+      import { defineConfig } from 'vite'
+      ...complete vite.config.ts content
+      ```
+
+      ## Requirements
+      1. Generate ALL necessary files for a complete project
+      2. Include package.json, tsconfig.json, vite.config.ts, tailwind.config.js
+      3. Create src/ directory with components, pages, hooks, utils
+      4. Use TypeScript with proper type definitions
+      5. Include Tailwind CSS configuration
+      6. Add proper ESLint and Prettier configs
+      7. Ensure the project can run with `pnpm install && pnpm dev`
+      8. No placeholders or "..." - provide complete file contents
+
+    model: laozhang:claude-3-5-sonnet-20241022
+    temperature: 0.1
+
+  - name: code-generator
+    prompt: |
+      You are a code generation expert. Generate clean, production-ready code based on requirements.
+      Always provide complete, working code without placeholders.
+      Use modern best practices and include proper TypeScript types.
+    model: laozhang:gpt-4o
+    temperature: 0.1
+
+# 主题配置
+theme: dark
+highlight: true

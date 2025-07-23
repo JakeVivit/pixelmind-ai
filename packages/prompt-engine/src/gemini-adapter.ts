@@ -2,8 +2,8 @@
 
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import type { AIGenerationRequest, AIGenerationResponse } from '@pixelmind/shared'
-import { PromptEngine, type PromptContext } from './core'
-import { DEFAULT_TEMPLATES } from './templates'
+import { PromptEngine, type PromptContext } from './core/index.js'
+import { DEFAULT_TEMPLATES } from './templates/index.js'
 
 export class GeminiAdapter extends PromptEngine {
   private genAI: GoogleGenerativeAI | null = null

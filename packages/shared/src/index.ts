@@ -11,3 +11,6 @@ export * from './ast'
 
 // Export WebContainer utilities
 export * from './webcontainer'
+
+// Export project templates
+export * from './templates/react-vite-base'

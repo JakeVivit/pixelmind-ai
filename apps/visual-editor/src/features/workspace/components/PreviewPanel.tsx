@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react'
-import { Button, Space, Dropdown, Typography, Select, Tooltip, Spin, Card } from 'antd'
+import { Button, Space, Dropdown, Typography, Select, Tooltip, Spin, Card, Tabs } from 'antd'
 import {
   RotateCcw,
   Maximize,
@@ -9,10 +9,12 @@ import {
   MoreHorizontal,
   Download,
   Bug,
+  Play,
 } from 'lucide-react'
 import type { MenuProps } from 'antd'
 import { cn } from '../../../utils/cn'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
+import { ProjectWebContainer } from './ProjectWebContainer'
 
 const { Text } = Typography
 const { Option } = Select
@@ -26,12 +28,13 @@ interface DevicePreset {
 
 /**
  * 预览面板组件
- * 支持多设备预览和实时更新
+ * 支持多设备预览和项目运行
  */
 export const PreviewPanel: React.FC = () => {
   const { selectedPageId, selectedComponentId } = useWorkspaceStore()
   const [isLoading, setIsLoading] = useState(false)
   const [currentDevice, setCurrentDevice] = useState('desktop')
+  const [activeTab, setActiveTab] = useState('preview')
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
   // 设备预设

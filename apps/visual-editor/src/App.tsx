@@ -57,7 +57,7 @@ export const App: React.FC = () => {
         <Route path="/projects" element={<ProjectsPage />} />
 
         {/* 项目工作台 - 独立布局，带项目ID参数 */}
-        <Route path="/projects/:projectId/workspace" element={<WorkspacePage />} />
+        <Route path="/workspace/:projectId" element={<WorkspacePage />} />
 
         {/* 默认重定向到首页 */}
         <Route path="*" element={<Navigate to="/" replace />} />
